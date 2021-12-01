@@ -13,3 +13,10 @@ public func partTwo() {
 
   print(count) // 1683
 }
+
+public func partTwoRajatStyle() {
+  let count = input
+    .windows(ofCount: 3)
+    .countAdjacentPairs { $0.first! < $1.last! }
+  print(count) // 1683
+}
