@@ -1,7 +1,7 @@
 import Algorithms
 
 public extension Array {
-  func countWhereAdjacentPairs(are predicate: (Element, Element) throws -> Bool) rethrows -> Int {
+  func countAdjacentPairs(where predicate: (Element, Element) throws -> Bool) rethrows -> Int {
     try self
       .adjacentPairs()
       .reduce(0) { count, pair in
@@ -11,7 +11,7 @@ public extension Array {
 }
 
 public extension Array where Element: Comparable {
-  func countWhereAdjacentPairsAreIncreasing() -> Int {
-    countWhereAdjacentPairs { $0 < $1 }
+  func countAdjacentPairsWhereIncreasing() -> Int {
+    countAdjacentPairs(where: <)
   }
 }
