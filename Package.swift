@@ -10,14 +10,10 @@ let dayTargets: [Target] = (1...25).map {
   .target(
     name: "Day\($0)",
     dependencies: [
+      "Extensions",
       .product(name: "Algorithms", package: "swift-algorithms")
     ] + dayDependencies[$0, default: []])
 }
-
-let executableTarget = Target.executableTarget(
-  name: "Main",
-  dependencies: (1...25).map { .byName(name: "Day\($0)") }
-)
 
 let package = Package(
   name: "AdventofCode2021",
@@ -27,5 +23,12 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
   ],
-  targets: [executableTarget] + dayTargets
+  targets: [
+    Target.executableTarget(
+      name: "Main",
+      dependencies: (1...25).map { .byName(name: "Day\($0)") }
+    ),
+    .target(name: "Extensions")
+  ] + dayTargets
 )
+

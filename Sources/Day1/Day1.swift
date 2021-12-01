@@ -1,21 +1,15 @@
 import Algorithms
-
-public func countDepthIncreases(in depths: [Int]) -> Int {
-  depths
-    .adjacentPairs()
-    .reduce(0) { count, pair in
-      pair.0 < pair.1 ? count + 1 : count
-    }
-}
+import Extensions
 
 public func partOne() {
-  print(countDepthIncreases(in: input)) // 1655
+  print(input.countWhereAdjacentPairsAreIncreasing()) // 1655
 }
 
 public func partTwo() {
-  let depthSums = input
+  let count = input
     .windows(ofCount: 3)
     .map { $0.reduce(0, +) }
+    .countWhereAdjacentPairsAreIncreasing()
 
-  print(countDepthIncreases(in: depthSums)) // 1683
+  print(count) // 1683
 }
