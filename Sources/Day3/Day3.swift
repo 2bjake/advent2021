@@ -1,13 +1,29 @@
 import Extensions
 
-enum Bit: Character, CaseIterable {
+enum Bit: Character {
   case zero = "0"
   case one = "1"
 }
 
+extension Bit {
+  func inverted() -> Bit {
+    self == .zero ? .one : .zero
+  }
+}
+
 extension Array where Element == Bit {
+  var mostCommonBit: Bit? {
+    let onesCount = self.count { $0 == .one }
+    let zerosCount = self.count - onesCount
+
+    guard onesCount != zerosCount else { return nil }
+    return onesCount > zerosCount ? .one : .zero
+  }
+
+  var leastCommonBit: Bit? { mostCommonBit?.inverted() }
+
   func inverted() -> [Bit] {
-    self.map { $0 == .one ? Bit.zero : .one }
+    self.map { $0.inverted() }
   }
 }
 
@@ -17,58 +33,30 @@ extension Int {
   }
 }
 
-func mostCommonValue(in array: [Bit]) -> Bit? {
-  let onesCount = array.count { $0 == .one }
-  let zerosCount = array.count - onesCount
-
-  guard onesCount != zerosCount else { return nil }
-  return onesCount > zerosCount ? .one : .zero
-}
-
-func leastCommonValue(in array: [Bit]) -> Bit? {
-  let onesCount = array.count { $0 == .one }
-  let zerosCount = array.count - onesCount
-
-  guard onesCount != zerosCount else { return nil }
-  return onesCount < zerosCount ? .one : .zero
-}
-
-func inputAsBits() -> [[Bit]] {
-  input.map { $0.compactMap(Bit.init) }
-}
-
 public func partOne() {
-  let gammaBits = inputAsBits()
+  let gammaBits = input
+    .map { $0.compactMap(Bit.init) }
     .transpose()
-    .map { mostCommonValue(in: $0) ?? .one }
+    .map { $0.mostCommonBit! }
 
   let epsilonBits = gammaBits.inverted()
 
   print(Int(gammaBits) * Int(epsilonBits)) // 3277364
 }
 
-public func partTwo() {
-  var values = inputAsBits()
-
+func filterInput(by filterBitFinder: ([Bit]) -> Bit) -> [Bit] {
+  var values = input.map { $0.compactMap(Bit.init) }
   var columnIndex = 0
   while values.count > 1 {
-    let filterBit = mostCommonValue(in: values.column(at: columnIndex)) ?? .one
+    let filterBit = filterBitFinder(values.column(at: columnIndex))
     values = values.filter { $0[columnIndex] == filterBit }
     columnIndex += 1
   }
+  return values.first!
+}
 
-  let oxygenRating = Int(values.first!)
-
-  values = inputAsBits()
-
-  columnIndex = 0
-  while values.count > 1 {
-    let filterBit = leastCommonValue(in: values.column(at: columnIndex)) ?? .zero
-    values = values.filter { $0[columnIndex] == filterBit }
-    columnIndex += 1
-  }
-
-  let scrubberRating = Int(values.first!)
-
-  print(scrubberRating * oxygenRating) // 5736383
+public func partTwo() {
+  let oxygenRating = filterInput { $0.mostCommonBit ?? .one }
+  let scrubberRating = filterInput { $0.leastCommonBit ?? .zero }
+  print(Int(scrubberRating) * Int(oxygenRating)) // 5736383
 }
