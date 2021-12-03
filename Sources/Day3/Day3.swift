@@ -1,62 +1,74 @@
 import Extensions
 
-func mostCommonValue(in array: [Character], tieBreaker: String = "1") -> String {
-  let onesCount = array.count { $0 == "1" }
-  let zerosCount = array.count - onesCount
-
-  return onesCount > zerosCount ? "1"
-  : onesCount < zerosCount ? "0"
-  : tieBreaker
+enum Bit: Character, CaseIterable {
+  case zero = "0"
+  case one = "1"
 }
 
-func leastCommonValue(in array: [Character], tieBreaker: String) -> String {
-  let onesCount = array.count { $0 == "1" }
+extension Array where Element == Bit {
+  func inverted() -> [Bit] {
+    self.map { $0 == .one ? Bit.zero : .one }
+  }
+}
+
+extension Int {
+  init(_ source: [Bit]) {
+    self.init(String(source.map(\.rawValue)), radix: 2)!
+  }
+}
+
+func mostCommonValue(in array: [Bit]) -> Bit? {
+  let onesCount = array.count { $0 == .one }
   let zerosCount = array.count - onesCount
 
-  return onesCount < zerosCount ? "1"
-  : onesCount > zerosCount ? "0"
-  : tieBreaker
+  guard onesCount != zerosCount else { return nil }
+  return onesCount > zerosCount ? .one : .zero
+}
+
+func leastCommonValue(in array: [Bit]) -> Bit? {
+  let onesCount = array.count { $0 == .one }
+  let zerosCount = array.count - onesCount
+
+  guard onesCount != zerosCount else { return nil }
+  return onesCount < zerosCount ? .one : .zero
+}
+
+func inputAsBits() -> [[Bit]] {
+  input.map { $0.compactMap(Bit.init) }
 }
 
 public func partOne() {
-  let gammaChars = input
-    .map(Array.init)
+  let gammaBits = inputAsBits()
     .transpose()
-    .map { mostCommonValue(in: $0) }
+    .map { mostCommonValue(in: $0) ?? .one }
 
-  let epsilonChars = gammaChars.map { $0 == "1" ? "0" : "1" }
+  let epsilonBits = gammaBits.inverted()
 
-  let gamma = Int(gammaChars.joined(separator: ""), radix: 2)!
-  let epsilon = Int(epsilonChars.joined(separator: ""), radix: 2)!
-
-  print(gamma * epsilon) // 3277364
+  print(Int(gammaBits) * Int(epsilonBits)) // 3277364
 }
 
 public func partTwo() {
-  var values = input
-    .map(Array.init)
+  var values = inputAsBits()
 
   var columnIndex = 0
   while values.count > 1 {
-    let filterBit = mostCommonValue(in: values.column(at: columnIndex), tieBreaker: "1")
-    values = values.filter { String($0[columnIndex]) == filterBit }
+    let filterBit = mostCommonValue(in: values.column(at: columnIndex)) ?? .one
+    values = values.filter { $0[columnIndex] == filterBit }
     columnIndex += 1
   }
 
-  let oxygenRating = Int(values.first!.map(String.init).joined(separator: ""), radix: 2)!
+  let oxygenRating = Int(values.first!)
 
-  values = input
-    .map(Array.init)
+  values = inputAsBits()
 
   columnIndex = 0
   while values.count > 1 {
-    let filterBit = leastCommonValue(in: values.column(at: columnIndex), tieBreaker: "0")
-    values = values.filter { String($0[columnIndex]) == filterBit }
+    let filterBit = leastCommonValue(in: values.column(at: columnIndex)) ?? .zero
+    values = values.filter { $0[columnIndex] == filterBit }
     columnIndex += 1
   }
 
-  let scrubberRating = Int(values.first!.map(String.init).joined(separator: ""), radix: 2)!
-
+  let scrubberRating = Int(values.first!)
 
   print(scrubberRating * oxygenRating) // 5736383
 }
