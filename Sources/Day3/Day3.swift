@@ -44,11 +44,11 @@ public func partOne() {
   print(Int(gammaBits) * Int(epsilonBits)) // 3277364
 }
 
-func filterInput(by filterBitFinder: ([Bit]) -> Bit) -> [Bit] {
+func filterInput(by bitCriteria: ([Bit]) -> Bit) -> [Bit] {
   var values = input.map { $0.compactMap(Bit.init) }
   var columnIndex = 0
   while values.count > 1 {
-    let filterBit = filterBitFinder(values.column(at: columnIndex))
+    let filterBit = bitCriteria(values.column(at: columnIndex))
     values = values.filter { $0[columnIndex] == filterBit }
     columnIndex += 1
   }
