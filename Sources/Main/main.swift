@@ -1,4 +1,4 @@
-import Day2
+import Day3
 
 partOne()
 partTwo()
