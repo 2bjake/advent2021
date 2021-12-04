@@ -3,27 +3,9 @@ import Extensions
 enum Bit: Character {
   case zero = "0"
   case one = "1"
-}
 
-extension Bit {
   func inverted() -> Bit {
     self == .zero ? .one : .zero
-  }
-}
-
-extension Array where Element == Bit {
-  var mostCommonBit: Bit? {
-    let onesCount = self.count { $0 == .one }
-    let zerosCount = self.count - onesCount
-
-    guard onesCount != zerosCount else { return nil }
-    return onesCount > zerosCount ? .one : .zero
-  }
-
-  var leastCommonBit: Bit? { mostCommonBit?.inverted() }
-
-  func inverted() -> [Bit] {
-    self.map { $0.inverted() }
   }
 }
 
@@ -37,9 +19,9 @@ public func partOne() {
   let gammaBits = input
     .map { $0.compactMap(Bit.init) }
     .transpose()
-    .map { $0.mostCommonBit! }
+    .map { $0.mostCommon()! }
 
-  let epsilonBits = gammaBits.inverted()
+  let epsilonBits = gammaBits.map { $0.inverted() }
 
   print(Int(gammaBits) * Int(epsilonBits)) // 3277364
 }
@@ -56,7 +38,7 @@ func filterInput(by bitCriteria: ([Bit]) -> Bit) -> [Bit] {
 }
 
 public func partTwo() {
-  let oxygenRating = filterInput { $0.mostCommonBit ?? .one }
-  let scrubberRating = filterInput { $0.leastCommonBit ?? .zero }
+  let oxygenRating = filterInput { $0.mostCommon() ?? .one }
+  let scrubberRating = filterInput { $0.leastCommon() ?? .zero }
   print(Int(scrubberRating) * Int(oxygenRating)) // 5736383
 }
