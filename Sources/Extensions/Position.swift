@@ -1,6 +1,6 @@
 public struct Position: Hashable {
-  public let row: Int
-  public let col: Int
+  public var row: Int
+  public var col: Int
 
   public init(_ row: Int, _ col: Int) {
     self.row = row
@@ -29,15 +29,16 @@ extension Array where Element: RandomAccessCollection & MutableCollection, Eleme
 }
 
 extension Array where Element: RandomAccessCollection, Element.Index == Int {
-  public var allPositions: [Position] {
-    var result = [Position]()
-    for x in 0..<self[0].count {
-      for y in 0..<self.count {
-        result.append(Position(x, y))
-      }
-    }
-    return result
-  }
+// Replaced with lazy version
+//  public var allPositions: [Position] {
+//    var result = [Position]()
+//    for x in 0..<self[0].count {
+//      for y in 0..<self.count {
+//        result.append(Position(x, y))
+//      }
+//    }
+//    return result
+//  }
 
   public func positionsInColumn(_ col: Int) -> [Position] {
     guard let first = first, first.indices.contains(col) else { return [] }

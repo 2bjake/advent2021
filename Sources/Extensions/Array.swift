@@ -1,5 +1,3 @@
-import Algorithms
-
 extension Array where Element: RandomAccessCollection, Element.Index == Int {
   // Transposes the 2D array
   // Example:

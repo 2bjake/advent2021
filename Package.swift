@@ -24,11 +24,14 @@ let package = Package(
     .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
   ],
   targets: [
-    Target.executableTarget(
+    .executableTarget(
       name: "Main",
       dependencies: (1...25).map { .byName(name: "Day\($0)") }
     ),
-    .target(name: "Extensions")
+    .target(
+      name: "Extensions",
+      dependencies: [.product(name: "Algorithms", package: "swift-algorithms")]
+    )
   ] + dayTargets
 )
 

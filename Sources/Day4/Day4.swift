@@ -49,25 +49,27 @@ struct Board {
 enum Place { case first, last }
 
 func findScoreForBoardThatWins(_ place: Place) -> Int? {
-  var (numbers, boards) = parse()
-  let boardCountWhenPlaceWins = place == .first ? boards.count : 1
+  var (numbers, boards) = parseInput()
+  var remainingWins = place == .first ? 1 : boards.count
 
   var remainingNumbers = ArraySlice(numbers)
   while !remainingNumbers.isEmpty {
-    boards = boards.filter { !$0.hasWon }
     let number = remainingNumbers.removeFirst()
-    for i in boards.indices {
+    for i in boards.indices where !boards[i].hasWon {
       boards[i].mark(number)
 
-      if boards.count == boardCountWhenPlaceWins, let score = boards[i].score {
-        return score * number
+      if let score = boards[i].score {
+        remainingWins -= 1
+        if remainingWins == 0 {
+          return score * number
+        }
       }
     }
   }
   return nil
 }
 
-func parse() -> (numbers: [Int], boards: [Board]) {
+func parseInput() -> (numbers: [Int], boards: [Board]) {
   let sections = input.components(separatedBy: "\n\n")
   let numbers = sections[0].split(separator: ",").map { Int($0)! }
 
