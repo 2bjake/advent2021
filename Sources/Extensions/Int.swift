@@ -22,6 +22,6 @@ extension Int {
   // Increments or decrements toward the specified value.
   // If self == toward, no change is made.
   public mutating func advance(toward: Self) {
-    self -= compare(with: toward)
+    self -= self.compare(with: toward)
   }
 }

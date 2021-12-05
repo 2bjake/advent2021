@@ -1,15 +1,7 @@
-public struct LazyPositionsSequence: LazySequenceProtocol {
-  private let rowIndices: Range<Int>
-  private let columnIndices: Range<Int>
-
-  init(rowIndices: Range<Int>, columnIndices: Range<Int>) {
-    self.rowIndices = rowIndices
-    self.columnIndices = columnIndices
-  }
-
-  public struct Iterator: IteratorProtocol {
-    private var rowIndices: Range<Int>
-    private var columnIndices: Range<Int>
+extension Array where Element: RandomAccessCollection, Element.Indices == Range<Int> {
+  public struct AllPositionsSequence: Sequence, IteratorProtocol {
+    private let rowIndices: Range<Int>
+    private let columnIndices: Range<Int>
     private var nextPosition = Position(0, 0)
 
     init(rowIndices: Range<Int>, columnIndices: Range<Int>) {
@@ -29,13 +21,7 @@ public struct LazyPositionsSequence: LazySequenceProtocol {
     }
   }
 
-  public func makeIterator() -> Iterator {
-    .init(rowIndices: rowIndices, columnIndices: columnIndices)
-  }
-}
-
-extension Array where Element: RandomAccessCollection, Element.Indices == Range<Int> {
-  public var allPositions: LazyPositionsSequence {
+  public var allPositions: AllPositionsSequence {
     .init(rowIndices: first?.indices ?? .empty, columnIndices: indices)
   }
 }
