@@ -8,6 +8,15 @@ public struct Position: Hashable {
   }
 }
 
+extension Position {
+  public func advanced(toward: Position) -> Position? {
+    var next = self
+    next.row.advance(toward: toward.row)
+    next.col.advance(toward: toward.col)
+    return next != self ? next : nil
+  }
+}
+
 extension Array where Element: RandomAccessCollection, Element.Index == Int {
   public typealias BaseElement = Element.Element
 
