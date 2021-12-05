@@ -11,21 +11,21 @@ extension PositionSequence {
   }
 }
 
-func findOverlapCount(for lines: [PositionSequence]) -> Int {
-  lines
+func countOverlaps(in positions: [PositionSequence]) -> Int {
+  positions
     .joined()
     .reduce(into: [:]) { dict, pos in dict[pos, default: 0] += 1 }
     .count { _, overlap in overlap > 1 }
 }
 
 public func partOne() {
-  let lines = input
+  let positions = input
     .map(PositionSequence.init)
     .filter { $0.orientation != .diagonal }
-  print(findOverlapCount(for: lines)) // 7436
+  print(countOverlaps(in: positions)) // 7436
 }
 
 public func partTwo() {
-  let lines = input.map(PositionSequence.init)
-  print(findOverlapCount(for: lines)) // 21104
+  let positions = input.map(PositionSequence.init)
+  print(countOverlaps(in: positions)) // 21104
 }
