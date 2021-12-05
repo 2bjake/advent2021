@@ -13,7 +13,6 @@ extension PositionSequence {
 
 func findOverlapCount(for lines: [PositionSequence]) -> Int {
   lines
-    .lazy
     .joined()
     .reduce(into: [:]) { dict, pos in dict[pos, default: 0] += 1 }
     .count { _, overlap in overlap > 1 }
