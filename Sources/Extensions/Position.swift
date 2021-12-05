@@ -9,7 +9,7 @@ public struct Position: Hashable {
 }
 
 extension Position {
-  public func advanced(toward: Position) -> Position? {
+  public func next(toward: Position) -> Position? {
     var next = self
     next.row.advance(toward: toward.row)
     next.col.advance(toward: toward.col)
