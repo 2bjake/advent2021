@@ -1,31 +1,22 @@
 import Algorithms
+import Extensions
 
-let crabPositions = input
-let (min, max) = crabPositions.minAndMax()!
+let (minPos, maxPos) = crabPositions.minAndMax()!
 
-func printBestCost(_ costForDistance: (Int) -> Int) {
-
-  func sumCosts(to position: Int) -> Int {
-    crabPositions.reduce(0) { result, crabPos in
-      result + costForDistance(abs(crabPos - position))
-    }
-  }
-
-  var lowestCost = sumCosts(to: min)
-  for position in (min + 1)...max {
-    let cost = sumCosts(to: position)
-    if cost < lowestCost {
-      lowestCost = cost
-    }
-  }
-  print(lowestCost)
+func bestCost(_ costForDistance: (Int) -> Int) -> Int {
+  (minPos...maxPos)
+    .map { position in
+      crabPositions.reduce(0) { result, crabPos in
+        result + costForDistance(abs(crabPos - position))
+      }
+    }.min()!
 }
 
 public func partOne() { // 352331
-  printBestCost { $0 }
+  print(bestCost { $0 })
 }
 
 public func partTwo() { // 99266250
-  let allCosts = (1...(max - min)).reductions(0, +)
-  printBestCost { allCosts[$0] }
+  let allCosts = (1...(maxPos - minPos)).reductions(0, +)
+  print(bestCost { allCosts[$0] })
 }

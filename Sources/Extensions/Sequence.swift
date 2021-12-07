@@ -17,3 +17,10 @@ extension Sequence where Element: Comparable {
     countAdjacentPairs(where: <)
   }
 }
+
+extension Sequence where Element: Comparable {
+  public func minMaxRange() -> ClosedRange<Element>? {
+    guard let (min, max) = self.minAndMax() else { return nil }
+    return min...max
+  }
+}
