@@ -4,7 +4,9 @@
 import PackageDescription
 
 // if a specific day needs additional dependencies, add them here
-let dayDependencies: [Int: [Target.Dependency]] = [:]
+let dayDependencies: [Int: [Target.Dependency]] = [
+  6 : [.product(name: "Collections", package: "swift-collections")]
+]
 
 let dayTargets: [Target] = (1...25).map {
   .target(
@@ -22,6 +24,7 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
+    .package(url: "https://github.com/apple/swift-collections.git", .upToNextMajor(from: "1.0.0"))
   ],
   targets: [
     .executableTarget(

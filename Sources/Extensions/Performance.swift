@@ -1,8 +1,19 @@
 import Foundation
 
-public func printMillisecondsElapsed(for work: () -> Void) {
-  let seconds = String(format: "%.4f", millisecondsElapsed(for: work))
-  print("\(seconds) ms")
+public func printMillisElapsed(_ description: String = "", for work: () -> Void) {
+  printAvgMillisElapsed(description, runTimes: 1, for: work)
+}
+
+public func printAvgMillisElapsed(_ description: String = "", runTimes: Int = 1, for work: () -> Void) {
+  var avg = 0.0
+  for _ in 0..<runTimes {
+    avg += millisecondsElapsed(for: work)
+  }
+  avg /= Double(runTimes)
+
+  let timesDescription = runTimes == 1 ? "" : " - average from running \(runTimes) times"
+
+  print("\(String(format: "%.4f", avg)) ms \(description)\(timesDescription)")
 }
 
 public func millisecondsElapsed(for work: () -> Void) -> Double {

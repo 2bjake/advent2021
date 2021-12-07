@@ -1,18 +1,39 @@
+import DequeModule
 import Extensions
 
-func solveFaster(days: Int) {
+// fastest solution
+func solveWithArrayIndexMath(days: Int) -> Int {
+  var startIndex = 0
   var fishCounts = input.reduce(into: Array(repeating: 0, count: 9)) { array, fishTimer in array[fishTimer] += 1 }
+  for _ in 0..<days {
+    let spawnCount = fishCounts[startIndex]
+    startIndex = (1 + startIndex) % 9
+    fishCounts[(6 + startIndex) % 9] += spawnCount
+  }
+  return fishCounts.reduce(0, +)
+}
+
+// generic soup to share algo with Array and Deque. 🙃
+func solveWithMutation<R: RangeReplaceableCollection & MutableCollection>(days: Int, collectionType _: R.Type) -> Int where R.Element == Int, R.Index == Int {
+  var fishCounts = input.reduce(into: R(repeating: 0, count: 9)) { array, fishTimer in array[fishTimer] += 1 }
   for _ in 0..<days {
     let spawnCount = fishCounts.removeFirst()
     fishCounts.append(spawnCount)
     fishCounts[6] += spawnCount
   }
-
-  let totalFish = fishCounts.reduce(0, +)
-  print(totalFish)
+  return fishCounts.reduce(0, +)
 }
 
-func solveFast(days: Int) {
+// second fastest solution
+func solveWithArrayMutation(days: Int) -> Int {
+  solveWithMutation(days: days, collectionType: Array<Int>.self)
+}
+
+func solveWithDequeMutation(days: Int) -> Int {
+  solveWithMutation(days: days, collectionType: Deque<Int>.self)
+}
+
+func solveWithDictionary(days: Int) -> Int {
   var fishCounts = input.reduce(into: [:]) { dict, fishTimer in dict[fishTimer, default: 0] += 1 }
   for _ in 0..<days {
     for i in 0..<9 {
@@ -22,12 +43,10 @@ func solveFast(days: Int) {
     fishCounts[8] = fishCounts[-1]
     fishCounts[-1] = nil
   }
-
-  let totalFish = fishCounts.values.reduce(0, +)
-  print(totalFish)
+  return fishCounts.values.reduce(0, +)
 }
 
-func solveSlow(days: Int) {
+func solveNaïvely(days: Int) -> Int {
   var fish = input
   for _ in 0..<days {
     var fishToAdd = 0
@@ -40,26 +59,45 @@ func solveSlow(days: Int) {
     }
     fish.append(contentsOf: Array(repeating: 8, count: fishToAdd))
   }
-  print(fish.count)
+  return fish.count
 }
 
-public func partOne() { // 362639
-  printMillisecondsElapsed {
-    solveSlow(days: 80)
-  }
-  printMillisecondsElapsed {
-    solveFast(days: 80)
-  }
-  printMillisecondsElapsed {
-    solveFaster(days: 80)
-  }
+public func partOne() {
+  print(solveWithArrayIndexMath(days: 80)) // 362639
 }
 
-public func partTwo() { // 1639854996917
-  printMillisecondsElapsed {
-    solveFast(days: 256)
+public func partTwo() {
+  print(solveWithArrayIndexMath(days: 256)) // 1639854996917
+}
+
+public func partOneTimeTests() {
+  timeTests(days: 80, times: 1000, runNaïveSolution: true)
+}
+
+public func partTwoTimeTests() {
+  timeTests(days: 256, times: 1000)
+}
+
+func timeTests(days: Int, times: Int, runNaïveSolution: Bool = false) {
+  if runNaïveSolution {
+    printAvgMillisElapsed("\(days) day naïve", runTimes: times) {
+      _ = solveNaïvely(days: days)
+    }
   }
-  printMillisecondsElapsed {
-    solveFaster(days: 256)
+
+  printAvgMillisElapsed("\(days) day dictionary", runTimes: times) {
+    _ = solveWithDictionary(days: days)
+  }
+
+  printAvgMillisElapsed("\(days) day deque", runTimes: times) {
+    _ = solveWithDequeMutation(days: days)
+  }
+
+  printAvgMillisElapsed("\(days) day array mutation", runTimes: times) {
+    _ = solveWithArrayMutation(days: days)
+  }
+
+  printAvgMillisElapsed("\(days) day array index math", runTimes: times) {
+    _ = solveWithArrayIndexMath(days: days)
   }
 }
