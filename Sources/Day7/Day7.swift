@@ -1,35 +1,31 @@
 import Algorithms
 
-func bestCost(with fuelNeededTo: (Int) -> Int) -> Int {
-  let (min, max) = input.minAndMax()!
+let crabPositions = input
+let (min, max) = crabPositions.minAndMax()!
 
-  var bestCost = fuelNeededTo(min)
-  for i in min+1...max {
-    let cost = fuelNeededTo(i)
-    if cost < bestCost {
-      bestCost = cost
+func printBestCost(_ costForDistance: (Int) -> Int) {
+
+  func sumCosts(to position: Int) -> Int {
+    crabPositions.reduce(0) { result, crabPos in
+      result + costForDistance(abs(crabPos - position))
     }
   }
-  return bestCost
+
+  var lowestCost = sumCosts(to: min)
+  for position in (min + 1)...max {
+    let cost = sumCosts(to: position)
+    if cost < lowestCost {
+      lowestCost = cost
+    }
+  }
+  print(lowestCost)
 }
 
-public func partOne() {
-  let cost = bestCost { position in
-    input.reduce(0) { result, crabPos in
-      result + abs(crabPos - position)
-    }
-  }
-  print(cost) // 352331
+public func partOne() { // 352331
+  printBestCost { $0 }
 }
 
-public func partTwo() {
-  let (min, max) = input.minAndMax()!
-  let allCosts = (1...max-min).reductions(0) { result, value in  result + value }
-
-  let cost = bestCost { position in
-    input.reduce(0) { result, crabPos in
-      result + allCosts[abs(crabPos - position)]
-    }
-  }
-  print(cost) // 99266250
+public func partTwo() { // 99266250
+  let allCosts = (1...(max - min)).reductions(0, +)
+  printBestCost { allCosts[$0] }
 }
