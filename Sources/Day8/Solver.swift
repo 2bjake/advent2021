@@ -10,16 +10,19 @@ enum Segment: Character, CaseIterable {
   case bottom = "g"
 }
 
-struct Pattern: Hashable {
-  let segments: Set<Segment>
-  
-  init(_ source: String) {
-    segments = Set(source.map { Segment.init(rawValue: $0)! })
+struct Entry {
+  let patterns: [Set<Character>] // 10 entries
+  let output: [Pattern] // 4 entries
+
+  init<S: StringProtocol>(_ source: S) {
+    let parts = source.split(separator: "|")
+    patterns = parts[0].split(separator: " ").map { Set($0) }
+    output = parts[1].split(separator: " ").map(Pattern.init)
   }
 }
 
 enum Solver {
-  static let segmentsToDigit: [Set<Character>: Int] = [
+  private static let segmentsToDigit: [Set<Character>: Int] = [
     Set("abcefg"): 0,
     Set("cf"): 1,
     Set("acdeg"): 2,
@@ -32,48 +35,23 @@ enum Solver {
     Set("abcdfg"): 9,
   ]
 
-//  static let segmentsToDigit: [Pattern: Int] = [
-//    Pattern("abcefg"): 0,
-//    Pattern("cf"): 1,
-//    Pattern("acdeg"): 2,
-//    Pattern("acdfg"): 3,
-//    Pattern("bcdf"): 4,
-//    Pattern("abdfg"): 5,
-//    Pattern("abdefg"): 6,
-//    Pattern("acf"): 7,
-//    Pattern("abcdefg"): 8,
-//    Pattern("abcdfg"): 9,
-//  ]
-
   // static let segmentCount = [6, 2, 5, 5, 4, 5, 6, 3, 7, 6]
-  static let segmentCount = segmentsToDigit.reduce(into: Array(repeating: 0, count: 10)) { result, entry in
+  private static let segmentCount = segmentsToDigit.reduce(into: Array(repeating: 0, count: 10)) { result, entry in
     result[entry.value] = entry.key.count
   }
-
-//  static func value(for patterns: [Set<Segment>]) -> Int {
-//    let digits: [Int] = pattern.map { attern in
-//      let charSet = pattern.
-//      segmentsToDigit[pattern]!
-//    }
-//
-//    return digits.reduce(0) { result, value in
-//      result * 10 + value
-//  }
 
   static func solve(entry: Entry) -> Int {
     let letterConverter = makeLetterConverter(entry: entry)
 
-    let digits: [Int] = entry.output.map { wrongPattern in
-      let pattern = Set(wrongPattern.map { letterConverter[$0]! })
-      return Self.segmentsToDigit[pattern]!
-    }
-
-    return digits.reduce(0) { result, value in
-      result * 10 + value
-    }
+    return entry.output
+      .lazy
+      .map { $0.converted(using: letterConverter).digit! }
+      .reduce(0) { result, value in
+        result * 10 + value
+      }
   }
 
-  static private func makeLetterConverter(entry: Entry) -> [Character: Character] {
+  static func makeLetterConverter(entry: Entry) -> [Character: Character] {
     return makeSegmentToLetter(entry: entry).flipWithUniqueValues().mapValues(\.rawValue)
   }
 

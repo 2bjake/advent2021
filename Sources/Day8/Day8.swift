@@ -1,22 +1,20 @@
 import Extensions
 
-struct Entry {
-  let patterns: [Set<Character>] // 10 entries
-  let output: [Set<Character>] // 4 entries
-
-  init<S: StringProtocol>(_ source: S) {
-    let parts = source.split(separator: "|")
-    patterns = parts[0].split(separator: " ").map { Set($0) }
-    output = parts[1].split(separator: " ").map { Set($0) }
-  }
+let knownPatternLengths = [2, 3, 4, 7]
+func countKnownPatterns(in line: Substring) -> Int {
+  line
+    .suffix { $0 != "|" }
+    .split(separator: " ")
+    .count { knownPatternLengths.contains($0.count) }
 }
 
 public func partOne() {
-  let entries = input.map(Entry.init)
-  let count = entries.reduce(0) { result, entry in
-    result + entry.output.count { [2, 4, 3, 7].contains($0.count) }
-  }
+  let count = input
+    .lazy
+    .map(countKnownPatterns)
+    .reduce(0, +)
   print(count) // 247
+  if count != 247 { fatalError() }
 }
 
 public func partTwo() {
@@ -28,4 +26,5 @@ public func partTwo() {
     }
 
   print(sum) // 933305
+  if sum != 933305 { fatalError() }
 }
