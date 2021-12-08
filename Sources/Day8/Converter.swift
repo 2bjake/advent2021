@@ -24,55 +24,48 @@ struct Converter {
   func callAsFunction(_ signal: Signal) -> Signal { convert(signal) }
 
   private static func buildConverter(_ signals: [Signal]) -> [Character: Character] {
-    let segmentCountToSignals: [Int: [Signal]] = signals.reduce(into: [:]) { result, signal in
-      result[signal.count, default: []].append(signal)
-    }
+    let segmentCountToSignals = Dictionary(grouping: signals, by: \.count)
 
-    let digitToSegmentCount = [1: 2, 4: 4, 7: 3, 8: 7]
-    let digitToSignal: [Int: Signal] = digitToSegmentCount.reduce(into: [:]) { result, entry in
-      let (digit, count) = entry
-      let signal = segmentCountToSignals[count]!.first!
-      result[digit] = signal
-    }
+    let digitToSignal = [1: 2, 4: 4, 7: 3, 8: 7].mapValues { segmentCountToSignals[$0]!.first! }
 
-    var segmentToLetter: [Segment: Character] = [:]
+    var segmentToChar: [Segment: Character] = [:]
 
     // top is the segment in 7 that is not in 1
-    segmentToLetter[.top] = digitToSignal[7]!.subtracting(digitToSignal[1]!).first!
+    segmentToChar[.top] = digitToSignal[7]!.subtracting(digitToSignal[1]!).first!
 
     // lowerRight is the segment in 1 that is in all signals where segment count = 6
-    segmentToLetter[.lowerRight] = digitToSignal[1]!.first { letter in
-      segmentCountToSignals[6]!.allSatisfy { $0.contains(letter) }
+    segmentToChar[.lowerRight] = digitToSignal[1]!.first { char in
+      segmentCountToSignals[6]!.allSatisfy { $0.contains(char) }
     }!
 
     // upperRight is the segment in 1 that is not lowerRight
-    segmentToLetter[.upperRight] = digitToSignal[1]!.subtracting([segmentToLetter[.lowerRight]!]).first!
+    segmentToChar[.upperRight] = digitToSignal[1]!.subtracting([segmentToChar[.lowerRight]!]).first!
 
     // middle is the segment in 4 but not in 1 that is in all signals where segment count = 5
     let possibleMiddles = digitToSignal[4]!.subtracting(digitToSignal[1]!)
-    let middleSet = possibleMiddles.filter { letter in
-      segmentCountToSignals[5]!.allSatisfy { $0.contains(letter) }
+    let middleSet = possibleMiddles.filter { char in
+      segmentCountToSignals[5]!.allSatisfy { $0.contains(char) }
     }
-    segmentToLetter[.middle] = middleSet.first!
+    segmentToChar[.middle] = middleSet.first!
 
     // upperLeft is the segment in 4 but not in 1 that is not middle
-    segmentToLetter[.upperLeft] = possibleMiddles.subtracting(middleSet).first!
+    segmentToChar[.upperLeft] = possibleMiddles.subtracting(middleSet).first!
 
     // zero signal is all segments of 8 + middle
     let zeroSignalSet = digitToSignal[8]!.union(middleSet)
 
     // remaining segments (bottom & lowerLeft) can be found by subtracting from zero, the segments in 4 and the top segment
-    let possibleBottoms = zeroSignalSet.subtracting(digitToSignal[4]! + [segmentToLetter[.top]!])
+    let possibleBottoms = zeroSignalSet.subtracting(digitToSignal[4]! + [segmentToChar[.top]!])
 
     // bottom is the segment in possibleSegments that is in all signals where count = 5
-    let bottomSet = possibleBottoms.filter { letter in
-      segmentCountToSignals[5]!.allSatisfy { $0.contains(letter) }
+    let bottomSet = possibleBottoms.filter { char in
+      segmentCountToSignals[5]!.allSatisfy { $0.contains(char) }
     }
-    segmentToLetter[.bottom] = bottomSet.first!
+    segmentToChar[.bottom] = bottomSet.first!
 
     // lowerLeft is segment in possibleSegments that is not bottom
-    segmentToLetter[.lowerLeft] = possibleBottoms.subtracting(bottomSet).first!
+    segmentToChar[.lowerLeft] = possibleBottoms.subtracting(bottomSet).first!
 
-    return segmentToLetter.flipWithUniqueValues().mapValues(\.rawValue)
+    return segmentToChar.flipWithUniqueValues().mapValues(\.rawValue)
   }
 }
