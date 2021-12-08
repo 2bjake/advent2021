@@ -14,7 +14,6 @@ public func partOne() {
     .map(countKnownPatterns)
     .reduce(0, +)
   print(count) // 247
-  if count != 247 { fatalError() }
 }
 
 ////// part 2
@@ -46,7 +45,7 @@ extension Entry {
     .init("abcdfg"): 9,
   ]
 
-  func numericalValue() -> Int {
+  func numericValue() -> Int {
     let convert = Converter(uniqueSignals)
     return outputSignals
       .lazy
@@ -60,9 +59,8 @@ extension Entry {
 public func partTwo() {
   let sum = input
     .lazy
-    .map { Entry($0).numericalValue() }
+    .map { Entry($0).numericValue() }
     .reduce(0, +)
 
   print(sum) // 933305
-  if sum != 933305 { fatalError() }
 }

@@ -24,48 +24,96 @@ struct Converter {
   func callAsFunction(_ signal: Signal) -> Signal { convert(signal) }
 
   private static func buildConverter(_ signals: [Signal]) -> [Character: Character] {
-    let segmentCountToSignals = Dictionary(grouping: signals, by: \.count)
+    let find = Finder(signalsForSegmentCount: Dictionary(grouping: signals, by: \.count))
 
-    let digitToSignal = [1: 2, 4: 4, 7: 3, 8: 7].mapValues { segmentCountToSignals[$0]!.first! }
-
-    var segmentToChar: [Segment: Character] = [:]
+    var charForSegment: [Segment: Character] = [:]
 
     // top is the segment in 7 that is not in 1
-    segmentToChar[.top] = digitToSignal[7]!.subtracting(digitToSignal[1]!).first!
+    charForSegment[.top] = find.char(in: 7, butNotIn: 1)
 
     // lowerRight is the segment in 1 that is in all signals where segment count = 6
-    segmentToChar[.lowerRight] = digitToSignal[1]!.first { char in
-      segmentCountToSignals[6]!.allSatisfy { $0.contains(char) }
-    }!
+    charForSegment[.lowerRight] = find.char(in: 1, andInAllSignalsWithSegmentCount: 6)
 
     // upperRight is the segment in 1 that is not lowerRight
-    segmentToChar[.upperRight] = digitToSignal[1]!.subtracting([segmentToChar[.lowerRight]!]).first!
+    charForSegment[.upperRight] = find.char(in: 1, butNotIn: charForSegment[.lowerRight]!)
 
     // middle is the segment in 4 but not in 1 that is in all signals where segment count = 5
-    let possibleMiddles = digitToSignal[4]!.subtracting(digitToSignal[1]!)
-    let middleSet = possibleMiddles.filter { char in
-      segmentCountToSignals[5]!.allSatisfy { $0.contains(char) }
-    }
-    segmentToChar[.middle] = middleSet.first!
+    let possibleMiddles = find.chars(in: 4, butNotIn: 1)
+    let middleSet = find.chars(in: possibleMiddles, andInAllSignalsWithSegmentCount: 5)
+    charForSegment[.middle] = middleSet.first!
 
-    // upperLeft is the segment in 4 but not in 1 that is not middle
-    segmentToChar[.upperLeft] = possibleMiddles.subtracting(middleSet).first!
+    // upperLeft is the segment in 4 but not in 1 (aka possibleMiddles) that is not middle
+    charForSegment[.upperLeft] = find.char(in: possibleMiddles, butNotIn: middleSet)
 
     // zero signal is all segments of 8 + middle
-    let zeroSignalSet = digitToSignal[8]!.union(middleSet)
+    let zeroSignal = find.signalForDigit(8).union(middleSet)
 
-    // remaining segments (bottom & lowerLeft) can be found by subtracting from zero, the segments in 4 and the top segment
-    let possibleBottoms = zeroSignalSet.subtracting(digitToSignal[4]! + [segmentToChar[.top]!])
+    // remaining segments (bottom & lowerLeft) can be found by subtracting the segments in 4 and the top segment from zero
+    let mask = Set(find.signalForDigit(4) + [charForSegment[.top]!])
+    let possibleBottoms = find.chars(in: zeroSignal, butNotIn: mask)
 
-    // bottom is the segment in possibleSegments that is in all signals where count = 5
-    let bottomSet = possibleBottoms.filter { char in
-      segmentCountToSignals[5]!.allSatisfy { $0.contains(char) }
-    }
-    segmentToChar[.bottom] = bottomSet.first!
+    // bottom is the segment in possibleBottoms that is in all signals where segment count = 5
+    let bottomSet = find.chars(in: possibleBottoms, andInAllSignalsWithSegmentCount: 5)
+    charForSegment[.bottom] = bottomSet.first!
 
     // lowerLeft is segment in possibleSegments that is not bottom
-    segmentToChar[.lowerLeft] = possibleBottoms.subtracting(bottomSet).first!
+    charForSegment[.lowerLeft] = find.char(in: possibleBottoms, butNotIn: bottomSet)
 
-    return segmentToChar.flipWithUniqueValues().mapValues(\.rawValue)
+    return charForSegment.flipWithUniqueValues().mapValues(\.rawValue)
+  }
+}
+
+// helper code to make algorithm code read more fluently
+private struct Finder {
+  private static let digitToKnownSignalCount = [1: 2, 4: 4, 7: 3, 8: 7]
+  private let signalForDigit: [Int : Signal]
+  private let signalsForSegmentCount: [Int: [Signal]]
+
+  init(signalsForSegmentCount: [Int : [Signal]]) {
+    self.signalsForSegmentCount = signalsForSegmentCount
+    signalForDigit = Self.digitToKnownSignalCount.mapValues { signalsForSegmentCount[$0]!.first! }
+  }
+
+  func signalsForSegmentCount(_ count: Int) -> [Signal] {
+    signalsForSegmentCount[count] ?? []
+  }
+
+  func signalForDigit(_ digit: Int) -> Signal {
+    guard let signal = signalForDigit[digit] else { fatalError() }
+    return signal
+  }
+
+  func char(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Character {
+    chars(in: aSet, butNotIn: bSet).first!
+  }
+
+  func chars(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Set<Character> {
+    aSet.subtracting(bSet)
+  }
+
+  func char(in aInt: Int, butNotIn bInt: Int) -> Character {
+    chars(in: aInt, butNotIn: bInt).first!
+  }
+
+  func chars(in aInt: Int, butNotIn bInt: Int) -> Set<Character> {
+    chars(in: signalForDigit(aInt), butNotIn: signalForDigit(bInt))
+  }
+
+  func char(in int: Int, butNotIn char: Character) -> Character {
+    chars(in: signalForDigit(int), butNotIn: [char]).first!
+  }
+
+  func char(in int: Int, andInAllSignalsWithSegmentCount count: Int) -> Character {
+    let signals = signalsForSegmentCount(count)
+    return signalForDigit(int).first { char in
+      signals.allSatisfy { $0.contains(char) }
+    }!
+  }
+
+  func chars(in set: Set<Character>, andInAllSignalsWithSegmentCount count: Int) -> Set<Character> {
+    let signals = signalsForSegmentCount(count)
+    return set.filter { char in
+      signals.allSatisfy { $0.contains(char) }
+    }
   }
 }
