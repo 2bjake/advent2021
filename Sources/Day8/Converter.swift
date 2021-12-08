@@ -13,17 +13,17 @@ struct Converter {
 
   private let converter: [Character: Character]
 
-  typealias Signal = Set<Character>
-
   init(_ signals: [Signal]) {
     self.converter = Self.buildConverter(signals)
   }
 
-  func convert(_ pattern: Pattern) -> Pattern {
-    Pattern(segments: Set(pattern.segments.map { converter[$0]! }))
+  func convert(_ signal: Signal) -> Signal {
+    Set(signal.map { converter[$0]! })
   }
 
-  static func buildConverter(_ signals: [Signal]) -> [Character: Character] {
+  func callAsFunction(_ signal: Signal) -> Signal { convert(signal) }
+
+  private static func buildConverter(_ signals: [Signal]) -> [Character: Character] {
     let segmentCountToSignals: [Int: [Signal]] = signals.reduce(into: [:]) { result, signal in
       result[signal.count, default: []].append(signal)
     }

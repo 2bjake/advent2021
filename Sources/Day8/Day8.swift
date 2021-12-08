@@ -17,32 +17,50 @@ public func partOne() {
   if count != 247 { fatalError() }
 }
 
+////// part 2
+
+typealias Signal = Set<Character>
+
 struct Entry {
-  let signals: [Set<Character>] // 10 values
-  let output: [Pattern] // 4 values
+  let uniqueSignals: [Signal]
+  let outputSignals: [Signal]
 
   init<S: StringProtocol>(_ source: S) {
     let parts = source.split(separator: "|")
-    signals = parts[0].split(separator: " ").map { Set($0) }
-    output = parts[1].split(separator: " ").map(Pattern.init)
+    uniqueSignals = parts[0].split(separator: " ").map(Signal.init)
+    outputSignals = parts[1].split(separator: " ").map(Signal.init)
   }
 }
 
-func numericalValue(of entry: Entry) -> Int {
-  let converter = Converter(entry.signals)
-  return entry.output
-    .lazy
-    .map { converter.convert($0).digit! }
-    .reduce(0) { result, value in
-      result * 10 + value
-    }
+extension Entry {
+  private static let signalToDigit: [Signal: Int] = [
+    .init("abcefg"): 0,
+    .init("cf"): 1,
+    .init("acdeg"): 2,
+    .init("acdfg"): 3,
+    .init("bcdf"): 4,
+    .init("abdfg"): 5,
+    .init("abdefg"): 6,
+    .init("acf"): 7,
+    .init("abcdefg"): 8,
+    .init("abcdfg"): 9,
+  ]
+
+  func numericalValue() -> Int {
+    let convert = Converter(uniqueSignals)
+    return outputSignals
+      .lazy
+      .map { Self.signalToDigit[convert($0)]! }
+      .reduce(0) { result, value in
+        result * 10 + value
+      }
+  }
 }
 
 public func partTwo() {
   let sum = input
     .lazy
-    .map(Entry.init)
-    .map(numericalValue)
+    .map { Entry($0).numericalValue() }
     .reduce(0, +)
 
   print(sum) // 933305
