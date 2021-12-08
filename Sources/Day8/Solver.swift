@@ -10,13 +10,15 @@ enum Segment: Character, CaseIterable {
   case bottom = "g"
 }
 
-struct Solver {
-  let entry: Entry
+struct Pattern: Hashable {
+  let segments: Set<Segment>
+  
+  init(_ source: String) {
+    segments = Set(source.map { Segment.init(rawValue: $0)! })
+  }
+}
 
-  // TODO: consider flipping these since it seems that digitToPattern is used more often?
-  var patternToDigit: [Set<Character>: Int] = [:]
-  var digitToPattern: [Int: Set<Character>] { patternToDigit.flipWithUniqueValues() }
-
+enum Solver {
   static let segmentsToDigit: [Set<Character>: Int] = [
     Set("abcefg"): 0,
     Set("cf"): 1,
@@ -30,13 +32,36 @@ struct Solver {
     Set("abcdfg"): 9,
   ]
 
+//  static let segmentsToDigit: [Pattern: Int] = [
+//    Pattern("abcefg"): 0,
+//    Pattern("cf"): 1,
+//    Pattern("acdeg"): 2,
+//    Pattern("acdfg"): 3,
+//    Pattern("bcdf"): 4,
+//    Pattern("abdfg"): 5,
+//    Pattern("abdefg"): 6,
+//    Pattern("acf"): 7,
+//    Pattern("abcdefg"): 8,
+//    Pattern("abcdfg"): 9,
+//  ]
+
   // static let segmentCount = [6, 2, 5, 5, 4, 5, 6, 3, 7, 6]
   static let segmentCount = segmentsToDigit.reduce(into: Array(repeating: 0, count: 10)) { result, entry in
     result[entry.value] = entry.key.count
   }
 
-  mutating func solve() -> Int {
-    let letterConverter = makeLetterConverter()
+//  static func value(for patterns: [Set<Segment>]) -> Int {
+//    let digits: [Int] = pattern.map { attern in
+//      let charSet = pattern.
+//      segmentsToDigit[pattern]!
+//    }
+//
+//    return digits.reduce(0) { result, value in
+//      result * 10 + value
+//  }
+
+  static func solve(entry: Entry) -> Int {
+    let letterConverter = makeLetterConverter(entry: entry)
 
     let digits: [Int] = entry.output.map { wrongPattern in
       let pattern = Set(wrongPattern.map { letterConverter[$0]! })
@@ -48,21 +73,20 @@ struct Solver {
     }
   }
 
-  private mutating func makeLetterConverter() -> [Character: Character] {
-    return makeSegmentToLetter().flipWithUniqueValues().mapValues(\.rawValue)
+  static private func makeLetterConverter(entry: Entry) -> [Character: Character] {
+    return makeSegmentToLetter(entry: entry).flipWithUniqueValues().mapValues(\.rawValue)
   }
 
-  // TODO: this shouldn't be mutating....
-  private mutating func makeSegmentToLetter() -> [Segment: Character] {
+  static private func makeSegmentToLetter(entry: Entry) -> [Segment: Character] {
     let segmentCountToPatterns: [Int: [Set<Character>]] = entry.patterns.reduce(into: [:]) { result, pattern in
       result[pattern.count, default: []].append(pattern)
     }
 
     // start with known patterns
-    patternToDigit = [1, 4, 7, 8].reduce(into: [:]) { result, digit in
+    var digitToPattern: [Int: Set<Character>] = [1, 4, 7, 8].reduce(into: [:]) { result, digit in
       let segmentCount = Self.segmentCount[digit]
       let pattern = segmentCountToPatterns[segmentCount]!.first!
-      result[pattern] = digit
+      result[digit] = pattern
     }
 
     var segmentToLetter: [Segment: Character] = [:]
@@ -89,8 +113,7 @@ struct Solver {
     segmentToLetter[.upperLeft] = possibleMiddles.subtracting(middleSet).first!
 
     // zero is 8 pattern + middle
-    let zeroPattern = digitToPattern[8]!.union(middleSet)
-    patternToDigit[zeroPattern] = 0
+    digitToPattern[0] = digitToPattern[8]!.union(middleSet)
 
     // remaining segments (bottom & lowerLeft) can be found by subtracting segments in 4 and top segment from zero
     let possibleBottoms = digitToPattern[0]!.subtracting(digitToPattern[4]! + [segmentToLetter[.top]!])

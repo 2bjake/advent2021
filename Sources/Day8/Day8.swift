@@ -20,12 +20,12 @@ public func partOne() {
 }
 
 public func partTwo() {
-  let entries = input.map(Entry.init)
+  let sum = input
+    .lazy
+    .map(Entry.init)
+    .reduce(0) { result, entry in
+      result + Solver.solve(entry: entry)
+    }
 
-  let sum = entries.reduce(0) { result, entry in
-    var solver = Solver(entry: entry)
-    return result + solver.solve()
-  }
-
-  print(sum)
+  print(sum) // 933305
 }
