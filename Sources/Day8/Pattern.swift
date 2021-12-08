@@ -21,8 +21,4 @@ extension Pattern {
   init<S: StringProtocol>(_ source: S) {
     segments = Set(source)
   }
-
-  func converted(using conversion: [Character: Character]) -> Pattern {
-    Pattern(segments: Set(segments.map { conversion[$0]! }))
-  }
 }
