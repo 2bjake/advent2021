@@ -11,19 +11,19 @@ struct Converter {
     case bottom = "g"
   }
 
-  private let converter: [Character: Character]
+  private let wrongToRight: [Character: Character]
 
   init(_ signals: [Signal]) {
-    self.converter = Self.buildConverter(signals)
+    self.wrongToRight = Self.buildMapping(signals)
   }
 
   func convert(_ signal: Signal) -> Signal {
-    Set(signal.map { converter[$0]! })
+    Set(signal.map { wrongToRight[$0]! })
   }
 
   func callAsFunction(_ signal: Signal) -> Signal { convert(signal) }
 
-  private static func buildConverter(_ signals: [Signal]) -> [Character: Character] {
+  private static func buildMapping(_ signals: [Signal]) -> [Character: Character] {
     let find = Finder(signalsForSegmentCount: Dictionary(grouping: signals, by: \.count))
 
     var charForSegment: [Segment: Character] = [:]
@@ -35,7 +35,7 @@ struct Converter {
     charForSegment[.lowerRight] = find.char(in: 1, andInAllSignalsWithSegmentCount: 6)
 
     // upperRight is the segment in 1 that is not lowerRight
-    charForSegment[.upperRight] = find.char(in: 1, butNotIn: charForSegment[.lowerRight]!)
+    charForSegment[.upperRight] = find.char(in: 1, butNot: charForSegment[.lowerRight]!)
 
     // middle is the segment in 4 but not in 1 that is in all signals where segment count = 5
     let possibleMiddles = find.chars(in: 4, butNotIn: 1)
@@ -83,12 +83,12 @@ private struct Finder {
     return signal
   }
 
-  func char(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Character {
-    chars(in: aSet, butNotIn: bSet).first!
-  }
-
   func chars(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Set<Character> {
     aSet.subtracting(bSet)
+  }
+
+  func char(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Character {
+    chars(in: aSet, butNotIn: bSet).first!
   }
 
   func char(in aInt: Int, butNotIn bInt: Int) -> Character {
@@ -99,15 +99,12 @@ private struct Finder {
     chars(in: signalForDigit(aInt), butNotIn: signalForDigit(bInt))
   }
 
-  func char(in int: Int, butNotIn char: Character) -> Character {
+  func char(in int: Int, butNot char: Character) -> Character {
     chars(in: signalForDigit(int), butNotIn: [char]).first!
   }
 
   func char(in int: Int, andInAllSignalsWithSegmentCount count: Int) -> Character {
-    let signals = signalsForSegmentCount(count)
-    return signalForDigit(int).first { char in
-      signals.allSatisfy { $0.contains(char) }
-    }!
+    chars(in: signalForDigit(int), andInAllSignalsWithSegmentCount: count).first!
   }
 
   func chars(in set: Set<Character>, andInAllSignalsWithSegmentCount count: Int) -> Set<Character> {
