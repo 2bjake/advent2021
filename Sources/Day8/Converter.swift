@@ -63,23 +63,6 @@ private extension Converter {
     }
   }
 
-  func wires(in aInt: Int, butNotIn bInt: Int? = nil, orderedBy predicate: (Character) -> Bool) -> (Character, Character) {
-    let signal = wires(in: aInt, butNotIn: bInt)
-    return wires(in: signal, orderedBy: predicate)
-  }
-
-  func wires(in int: Int, butNotIn set: Set<Character>, orderedBy predicate: (Character) -> Bool) -> (Character, Character) {
-    let signal = wires(in: signalForDigit(int), butNotIn: set)
-    return wires(in: signal, orderedBy: predicate)
-  }
-
-  func wires(in signal: Set<Character>, orderedBy predicate: (Character) -> Bool) -> (Character, Character) {
-    guard signal.count == 2 else { fatalError() }
-    let first = signal.first!
-    let second = signal.dropFirst().first!
-    return predicate(first) ? (first, second) : (second, first)
-  }
-
   func wires(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Set<Character> {
     aSet.subtracting(bSet)
   }
@@ -89,7 +72,24 @@ private extension Converter {
   }
 
   func wires(in aInt: Int, butNotIn bInt: Int? = nil) -> Set<Character> {
-    let bSet = bInt == nil ? [] : signalForDigit(bInt!)
+    let bSet = bInt != nil ? signalForDigit(bInt!) : []
     return wires(in: signalForDigit(aInt), butNotIn: bSet)
+  }
+
+  func wires(in signal: Set<Character>, orderedBy predicate: (Character) -> Bool) -> (Character, Character) {
+    guard signal.count == 2 else { fatalError() }
+    let first = signal.first!
+    let second = signal.dropFirst().first!
+    return predicate(first) ? (first, second) : (second, first)
+  }
+
+  func wires(in aInt: Int, butNotIn bInt: Int? = nil, orderedBy predicate: (Character) -> Bool) -> (Character, Character) {
+    let signal = wires(in: aInt, butNotIn: bInt)
+    return wires(in: signal, orderedBy: predicate)
+  }
+
+  func wires(in int: Int, butNotIn set: Set<Character>, orderedBy predicate: (Character) -> Bool) -> (Character, Character) {
+    let signal = wires(in: signalForDigit(int), butNotIn: set)
+    return wires(in: signal, orderedBy: predicate)
   }
 }
