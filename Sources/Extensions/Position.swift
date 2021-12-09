@@ -24,9 +24,30 @@ extension Array where Element: RandomAccessCollection, Element.Index == Int {
     get { self[position.col][position.row] }
   }
 
-  func element(at position: Position) -> BaseElement? {
+  public func element(at position: Position) -> BaseElement? {
     guard indices.contains(position.col) && self[0].indices.contains(position.row) else { return nil }
     return self[position]
+  }
+
+  public func adjacentPositions(of position: Position, includingDiagonals: Bool = false) -> [Position] {
+    var neighbors = [Position]()
+    for x in -1...1 {
+      for y in -1...1 {
+        // TODO: this all could be better...
+        var newPosition = position
+        newPosition.row += x
+        newPosition.col += y
+        if !includingDiagonals && newPosition.row != position.row && newPosition.col != position.col { continue }
+        if newPosition != position, element(at: newPosition) != nil {
+          neighbors.append(newPosition)
+        }
+      }
+    }
+    return neighbors
+  }
+
+  public func adjacentElements(of position: Position, includingDiagonals: Bool = false) -> [BaseElement] {
+    adjacentPositions(of: position, includingDiagonals: includingDiagonals).map { self[$0] }
   }
 }
 
@@ -38,17 +59,6 @@ extension Array where Element: RandomAccessCollection & MutableCollection, Eleme
 }
 
 extension Array where Element: RandomAccessCollection, Element.Index == Int {
-// Replaced with lazy version
-//  public var allPositions: [Position] {
-//    var result = [Position]()
-//    for x in 0..<self[0].count {
-//      for y in 0..<self.count {
-//        result.append(Position(x, y))
-//      }
-//    }
-//    return result
-//  }
-
   public func positionsInColumn(_ col: Int) -> [Position] {
     guard let first = first, first.indices.contains(col) else { return [] }
     return indices.map { Position($0, col) }
