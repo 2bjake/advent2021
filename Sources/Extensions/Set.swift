@@ -7,3 +7,9 @@ extension Set {
     self.union([element])
   }
 }
+
+extension Hashable {
+  public func isIn(_ set: Set<Self>) -> Bool {
+    set.contains(self)
+  }
+}
