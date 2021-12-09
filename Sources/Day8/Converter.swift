@@ -1,66 +1,60 @@
 import Extensions
 
-struct Converter {
-  private enum Segment: Character, CaseIterable {
-    case top = "a"
-    case upperLeft = "b"
-    case upperRight = "c"
-    case middle = "d"
-    case lowerLeft = "e"
-    case lowerRight = "f"
-    case bottom = "g"
-  }
+private enum Segment: Character, CaseIterable {
+  case top = "a"
+  case upperLeft = "b"
+  case upperRight = "c"
+  case middle = "d"
+  case lowerLeft = "e"
+  case lowerRight = "f"
+  case bottom = "g"
+}
 
-  private let wrongToRight: [Character: Character]
+struct Converter {
+  private static let digitToUniqueWireCount = [1: 2, 4: 4, 7: 3, 8: 7]
+  private let signalForDigit: [Int : Signal]
+  private let signalsByWireCount: [Int: [Signal]]
 
   init(_ signals: [Signal]) {
-    self.wrongToRight = Self.buildMapping(signals)
+    let signalsByWireCount = Dictionary(grouping: signals, by: \.count)
+    self.signalsByWireCount = signalsByWireCount
+    signalForDigit = Self.digitToUniqueWireCount.mapValues { signalsByWireCount[$0]!.only! }
   }
 
-  func convert(_ signal: Signal) -> Signal {
-    Set(signal.map { wrongToRight[$0]! })
+  func build() -> (Signal) -> Signal {
+    let mapping = buildMapping()
+    return { signal in
+      Set(signal.map { mapping[$0]! })
+    }
   }
 
-  func callAsFunction(_ signal: Signal) -> Signal { convert(signal) }
-
-  private static func buildMapping(_ signals: [Signal]) -> [Character: Character] {
-    let find = Finder(signalsByWireCount: Dictionary(grouping: signals, by: \.count))
-
+  private func buildMapping() -> [Character: Character] {
     var wireForSegment: [Segment: Character] = [:]
 
-    let top = find.wire(in: 7, butNotIn: 1)
+    let top = wire(in: 7, butNotIn: 1)
     wireForSegment[.top] = top
 
-    let lowerRight = find.wire(in: 1, andInAllSignalsWithWireCount: 6)
+    let lowerRight = wire(in: 1, andInAllSignalsWithWireCount: 6)
     wireForSegment[.lowerRight] = lowerRight
-    wireForSegment[.upperRight] = find.wire(in: 1, thatIsNot: lowerRight)
+    wireForSegment[.upperRight] = wire(in: 1, thatIsNot: lowerRight)
 
-    let upperLeftAndMiddle = find.wires(in: 4, butNotIn: 1)
-    let middle = find.wire(in: upperLeftAndMiddle, andInAllSignalsWithWireCount: 5)
+    let upperLeftAndMiddle = wires(in: 4, butNotIn: 1)
+    let middle = wire(in: upperLeftAndMiddle, andInAllSignalsWithWireCount: 5)
     wireForSegment[.middle] = middle
-    wireForSegment[.upperLeft] = find.wire(in: upperLeftAndMiddle, thatIsNot: middle)
+    wireForSegment[.upperLeft] = wire(in: upperLeftAndMiddle, thatIsNot: middle)
 
-    let mask = find.signalForDigit(4).inserting(top)
-    let lowerLeftAndBottom = find.wires(in: 8, butNotIn: mask)
-    let bottom = find.wire(in: lowerLeftAndBottom, andInAllSignalsWithWireCount: 5)
+    let mask = signalForDigit(4).inserting(top)
+    let lowerLeftAndBottom = wires(in: 8, butNotIn: mask)
+    let bottom = wire(in: lowerLeftAndBottom, andInAllSignalsWithWireCount: 5)
     wireForSegment[.bottom] = bottom
-    wireForSegment[.lowerLeft] = find.wire(in: lowerLeftAndBottom, thatIsNot: bottom)
+    wireForSegment[.lowerLeft] = wire(in: lowerLeftAndBottom, thatIsNot: bottom)
 
     return wireForSegment.flipWithUniqueValues().mapValues(\.rawValue)
   }
 }
 
 // helper code to make algorithm code read more fluently
-private struct Finder {
-  private static let digitToUniqueWireCount = [1: 2, 4: 4, 7: 3, 8: 7]
-  private let signalForDigit: [Int : Signal]
-  private let signalsByWireCount: [Int: [Signal]]
-
-  init(signalsByWireCount: [Int : [Signal]]) {
-    self.signalsByWireCount = signalsByWireCount
-    signalForDigit = Self.digitToUniqueWireCount.mapValues { signalsByWireCount[$0]!.only! }
-  }
-
+private extension Converter {
   func signalsForWireCount(_ count: Int) -> [Signal] {
     signalsByWireCount[count] ?? []
   }

@@ -46,7 +46,7 @@ extension Entry {
   ]
 
   func numericValue() -> Int {
-    let convert = Converter(uniqueSignals)
+    let convert = Converter(uniqueSignals).build()
     return outputSignals
       .lazy
       .map { Self.signalToDigit[convert($0)]! }
