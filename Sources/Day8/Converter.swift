@@ -45,8 +45,8 @@ struct Converter {
     // upperLeft is the segment in 4 but not in 1 (aka possibleMiddles) that is not middle
     charForSegment[.upperLeft] = find.char(in: possibleMiddles, butNotIn: middleSet)
 
-    // zero signal is all segments of 8 + middle
-    let zeroSignal = find.signalForDigit(8).union(middleSet)
+    // zero signal is all segments of 8 - middle
+    let zeroSignal = find.chars(in: 8, butNotIn: middleSet)
 
     // remaining segments (bottom & lowerLeft) can be found by subtracting the segments in 4 and the top segment from zero
     let mask = Set(find.signalForDigit(4) + [charForSegment[.top]!])
@@ -97,6 +97,10 @@ private struct Finder {
 
   func chars(in aInt: Int, butNotIn bInt: Int) -> Set<Character> {
     chars(in: signalForDigit(aInt), butNotIn: signalForDigit(bInt))
+  }
+
+  func chars(in int: Int, butNotIn set: Set<Character>) -> Set<Character> {
+    chars(in: signalForDigit(int), butNotIn: set)
   }
 
   func char(in int: Int, butNot char: Character) -> Character {
