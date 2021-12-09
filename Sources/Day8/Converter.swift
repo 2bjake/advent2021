@@ -1,6 +1,6 @@
 import Extensions
 
-private enum Segment: Character, CaseIterable {
+private enum Segment: Character {
   case top = "a"
   case upperLeft = "b"
   case upperRight = "c"
@@ -11,14 +11,15 @@ private enum Segment: Character, CaseIterable {
 }
 
 struct Converter {
-  private static let digitToUniqueWireCount = [1: 2, 4: 4, 7: 3, 8: 7]
+  private static let uniqueWireCountForDigit = [1: 2, 4: 4, 7: 3, 8: 7]
+
   private let signalForDigit: [Int : Signal]
-  private let signalsByWireCount: [Int: [Signal]]
+  private let signalsForWireCount: [Int: [Signal]]
 
   init(_ signals: [Signal]) {
-    let signalsByWireCount = Dictionary(grouping: signals, by: \.count)
-    self.signalsByWireCount = signalsByWireCount
-    signalForDigit = Self.digitToUniqueWireCount.mapValues { signalsByWireCount[$0]!.only! }
+    let signalsForWireCount = Dictionary(grouping: signals, by: \.count)
+    self.signalsForWireCount = signalsForWireCount
+    signalForDigit = Self.uniqueWireCountForDigit.mapValues { signalsForWireCount[$0]!.only! }
   }
 
   func build() -> (Signal) -> Signal {
@@ -29,7 +30,7 @@ struct Converter {
   }
 
   private func buildMapping() -> [Character: Character] {
-    var wireForSegment: [Segment: Character] = [:]
+    var wireForSegment = [Segment: Character]()
 
     let top = wire(in: 7, butNotIn: 1)
     wireForSegment[.top] = top
@@ -56,7 +57,7 @@ struct Converter {
 // helper code to make algorithm code read more fluently
 private extension Converter {
   func signalsForWireCount(_ count: Int) -> [Signal] {
-    signalsByWireCount[count] ?? []
+    signalsForWireCount[count] ?? []
   }
 
   func signalForDigit(_ digit: Int) -> Signal {
