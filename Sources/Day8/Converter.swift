@@ -52,13 +52,13 @@ struct Converter {
 
 // helper code to make algorithm code read more fluently
 private struct Finder {
-  private static let digitToKnownWireCount = [1: 2, 4: 4, 7: 3, 8: 7]
+  private static let digitToUniqueWireCount = [1: 2, 4: 4, 7: 3, 8: 7]
   private let signalForDigit: [Int : Signal]
   private let signalsByWireCount: [Int: [Signal]]
 
   init(signalsByWireCount: [Int : [Signal]]) {
     self.signalsByWireCount = signalsByWireCount
-    signalForDigit = Self.digitToKnownWireCount.mapValues { signalsByWireCount[$0]!.only! }
+    signalForDigit = Self.digitToUniqueWireCount.mapValues { signalsByWireCount[$0]!.only! }
   }
 
   func signalsForWireCount(_ count: Int) -> [Signal] {
