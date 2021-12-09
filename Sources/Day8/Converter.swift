@@ -28,34 +28,27 @@ struct Converter {
 
     var wireForSegment: [Segment: Character] = [:]
 
-    // top is the wire in 7 that is not in 1
     wireForSegment[.top] = find.wire(in: 7, butNotIn: 1)
 
-    // lowerRight is the wire in 1 that is in all signals where wire count == 6
     let lowerRight = find.wire(in: 1, andInAllSignalsWithWireCount: 6)
     wireForSegment[.lowerRight] = lowerRight
 
-    // upperRight is the wire in 1 that is not the lowerRight
     wireForSegment[.upperRight] = find.wire(in: 1, butNot: lowerRight)
 
-    // middle is the wire in 4 but not in 1 that is in all signals where wire count == 5
     let possibleMiddles = find.wires(in: 4, butNotIn: 1)
     let middle = find.wire(in: possibleMiddles, andInAllSignalsWithWireCount: 5)
     wireForSegment[.middle] = middle
 
-    // upperLeft is the wire in 4 but not in 1 (aka possibleMiddles) that is not the middle
     wireForSegment[.upperLeft] = find.wire(in: possibleMiddles, butNot: middle)
 
-    // remaining wires (bottom & lowerLeft) can be found by subtracting the wires in 4 and the top wire from 8
+    // mask to isolate bottom and lowerLeft
     let mask = Set(find.signalForDigit(4) + [wireForSegment[.top]!])
     let possibleBottoms = find.wires(in: 8, butNotIn: mask)
 
-    // bottom is the wire in possibleBottoms that is in all signals where wire count = 5
-    let bottomSet = find.wires(in: possibleBottoms, andInAllSignalsWithWireCount: 5)
-    wireForSegment[.bottom] = bottomSet.only!
+    let bottom = find.wire(in: possibleBottoms, andInAllSignalsWithWireCount: 5)
+    wireForSegment[.bottom] = bottom
 
-    // lowerLeft is the wire in possibleBottoms that is not the bottom
-    wireForSegment[.lowerLeft] = find.wire(in: possibleBottoms, butNotIn: bottomSet)
+    wireForSegment[.lowerLeft] = find.wire(in: possibleBottoms, butNot: bottom)
 
     return wireForSegment.flipWithUniqueValues().mapValues(\.rawValue)
   }
