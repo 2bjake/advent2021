@@ -35,3 +35,10 @@ extension Collection where Element: Hashable {
       .element
   }
 }
+
+extension Collection {
+  public var only: Element? {
+    guard self.count == 1 else { return nil }
+    return self.first
+  }
+}

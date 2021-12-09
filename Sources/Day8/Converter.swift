@@ -24,42 +24,40 @@ struct Converter {
   func callAsFunction(_ signal: Signal) -> Signal { convert(signal) }
 
   private static func buildMapping(_ signals: [Signal]) -> [Character: Character] {
-    let find = Finder(signalsForSegmentCount: Dictionary(grouping: signals, by: \.count))
+    let find = Finder(signalsByWireCount: Dictionary(grouping: signals, by: \.count))
 
-    var charForSegment: [Segment: Character] = [:]
+    var wireForSegment: [Segment: Character] = [:]
 
-    // top is the segment in 7 that is not in 1
-    charForSegment[.top] = find.char(in: 7, butNotIn: 1)
+    // top is the wire in 7 that is not in 1
+    wireForSegment[.top] = find.wire(in: 7, butNotIn: 1)
 
-    // lowerRight is the segment in 1 that is in all signals where segment count = 6
-    charForSegment[.lowerRight] = find.char(in: 1, andInAllSignalsWithSegmentCount: 6)
+    // lowerRight is the wire in 1 that is in all signals where wire count == 6
+    let lowerRight = find.wire(in: 1, andInAllSignalsWithWireCount: 6)
+    wireForSegment[.lowerRight] = lowerRight
 
-    // upperRight is the segment in 1 that is not lowerRight
-    charForSegment[.upperRight] = find.char(in: 1, butNot: charForSegment[.lowerRight]!)
+    // upperRight is the wire in 1 that is not the lowerRight
+    wireForSegment[.upperRight] = find.wire(in: 1, butNot: lowerRight)
 
-    // middle is the segment in 4 but not in 1 that is in all signals where segment count = 5
-    let possibleMiddles = find.chars(in: 4, butNotIn: 1)
-    let middleSet = find.chars(in: possibleMiddles, andInAllSignalsWithSegmentCount: 5)
-    charForSegment[.middle] = middleSet.first!
+    // middle is the wire in 4 but not in 1 that is in all signals where wire count == 5
+    let possibleMiddles = find.wires(in: 4, butNotIn: 1)
+    let middle = find.wire(in: possibleMiddles, andInAllSignalsWithWireCount: 5)
+    wireForSegment[.middle] = middle
 
-    // upperLeft is the segment in 4 but not in 1 (aka possibleMiddles) that is not middle
-    charForSegment[.upperLeft] = find.char(in: possibleMiddles, butNotIn: middleSet)
+    // upperLeft is the wire in 4 but not in 1 (aka possibleMiddles) that is not the middle
+    wireForSegment[.upperLeft] = find.wire(in: possibleMiddles, butNot: middle)
 
-    // zero signal is all segments of 8 - middle
-    let zeroSignal = find.chars(in: 8, butNotIn: middleSet)
+    // remaining wires (bottom & lowerLeft) can be found by subtracting the wires in 4 and the top wire from 8
+    let mask = Set(find.signalForDigit(4) + [wireForSegment[.top]!])
+    let possibleBottoms = find.wires(in: 8, butNotIn: mask)
 
-    // remaining segments (bottom & lowerLeft) can be found by subtracting the segments in 4 and the top segment from zero
-    let mask = Set(find.signalForDigit(4) + [charForSegment[.top]!])
-    let possibleBottoms = find.chars(in: zeroSignal, butNotIn: mask)
+    // bottom is the wire in possibleBottoms that is in all signals where wire count = 5
+    let bottomSet = find.wires(in: possibleBottoms, andInAllSignalsWithWireCount: 5)
+    wireForSegment[.bottom] = bottomSet.only!
 
-    // bottom is the segment in possibleBottoms that is in all signals where segment count = 5
-    let bottomSet = find.chars(in: possibleBottoms, andInAllSignalsWithSegmentCount: 5)
-    charForSegment[.bottom] = bottomSet.first!
+    // lowerLeft is the wire in possibleBottoms that is not the bottom
+    wireForSegment[.lowerLeft] = find.wire(in: possibleBottoms, butNotIn: bottomSet)
 
-    // lowerLeft is segment in possibleSegments that is not bottom
-    charForSegment[.lowerLeft] = find.char(in: possibleBottoms, butNotIn: bottomSet)
-
-    return charForSegment.flipWithUniqueValues().mapValues(\.rawValue)
+    return wireForSegment.flipWithUniqueValues().mapValues(\.rawValue)
   }
 }
 
@@ -67,15 +65,15 @@ struct Converter {
 private struct Finder {
   private static let digitToKnownSignalCount = [1: 2, 4: 4, 7: 3, 8: 7]
   private let signalForDigit: [Int : Signal]
-  private let signalsForSegmentCount: [Int: [Signal]]
+  private let signalsByWireCount: [Int: [Signal]]
 
-  init(signalsForSegmentCount: [Int : [Signal]]) {
-    self.signalsForSegmentCount = signalsForSegmentCount
-    signalForDigit = Self.digitToKnownSignalCount.mapValues { signalsForSegmentCount[$0]!.first! }
+  init(signalsByWireCount: [Int : [Signal]]) {
+    self.signalsByWireCount = signalsByWireCount
+    signalForDigit = Self.digitToKnownSignalCount.mapValues { signalsByWireCount[$0]!.only! }
   }
 
-  func signalsForSegmentCount(_ count: Int) -> [Signal] {
-    signalsForSegmentCount[count] ?? []
+  func signalsForWireCount(_ count: Int) -> [Signal] {
+    signalsByWireCount[count] ?? []
   }
 
   func signalForDigit(_ digit: Int) -> Signal {
@@ -83,36 +81,44 @@ private struct Finder {
     return signal
   }
 
-  func chars(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Set<Character> {
+  func wires(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Set<Character> {
     aSet.subtracting(bSet)
   }
 
-  func char(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Character {
-    chars(in: aSet, butNotIn: bSet).first!
+  func wire(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Character {
+    wires(in: aSet, butNotIn: bSet).only!
   }
 
-  func char(in aInt: Int, butNotIn bInt: Int) -> Character {
-    chars(in: aInt, butNotIn: bInt).first!
+  func wire(in aInt: Int, butNotIn bInt: Int) -> Character {
+    wires(in: aInt, butNotIn: bInt).only!
   }
 
-  func chars(in aInt: Int, butNotIn bInt: Int) -> Set<Character> {
-    chars(in: signalForDigit(aInt), butNotIn: signalForDigit(bInt))
+  func wires(in aInt: Int, butNotIn bInt: Int) -> Set<Character> {
+    wires(in: signalForDigit(aInt), butNotIn: signalForDigit(bInt))
   }
 
-  func chars(in int: Int, butNotIn set: Set<Character>) -> Set<Character> {
-    chars(in: signalForDigit(int), butNotIn: set)
+  func wires(in int: Int, butNotIn set: Set<Character>) -> Set<Character> {
+    wires(in: signalForDigit(int), butNotIn: set)
   }
 
-  func char(in int: Int, butNot char: Character) -> Character {
-    chars(in: signalForDigit(int), butNotIn: [char]).first!
+  func wire(in set: Set<Character>, butNot char: Character) -> Character {
+    wires(in: set, butNotIn: [char]).only!
   }
 
-  func char(in int: Int, andInAllSignalsWithSegmentCount count: Int) -> Character {
-    chars(in: signalForDigit(int), andInAllSignalsWithSegmentCount: count).first!
+  func wire(in int: Int, butNot char: Character) -> Character {
+    wire(in: signalForDigit(int), butNot: char)
   }
 
-  func chars(in set: Set<Character>, andInAllSignalsWithSegmentCount count: Int) -> Set<Character> {
-    let signals = signalsForSegmentCount(count)
+  func wire(in int: Int, andInAllSignalsWithWireCount count: Int) -> Character {
+    wire(in: signalForDigit(int), andInAllSignalsWithWireCount: count)
+  }
+
+  func wire(in set: Set<Character>, andInAllSignalsWithWireCount count: Int) -> Character {
+    wires(in: set, andInAllSignalsWithWireCount: count).only!
+  }
+
+  func wires(in set: Set<Character>, andInAllSignalsWithWireCount count: Int) -> Set<Character> {
+    let signals = signalsForWireCount(count)
     return set.filter { char in
       signals.allSatisfy { $0.contains(char) }
     }
