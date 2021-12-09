@@ -1,11 +1,11 @@
 import Extensions
 
-let knownPatternLengths = [2, 3, 4, 7]
+let uniqueWireCounts = [2, 3, 4, 7]
 func countKnownPatterns(in line: Substring) -> Int {
   line
     .suffix { $0 != "|" }
     .split(separator: " ")
-    .count { knownPatternLengths.contains($0.count) }
+    .count { uniqueWireCounts.contains($0.count) }
 }
 
 public func partOne() {

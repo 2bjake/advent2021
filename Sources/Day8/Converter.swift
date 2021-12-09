@@ -28,27 +28,23 @@ struct Converter {
 
     var wireForSegment: [Segment: Character] = [:]
 
-    wireForSegment[.top] = find.wire(in: 7, butNotIn: 1)
+    let top = find.wire(in: 7, butNotIn: 1)
+    wireForSegment[.top] = top
 
     let lowerRight = find.wire(in: 1, andInAllSignalsWithWireCount: 6)
     wireForSegment[.lowerRight] = lowerRight
-
     wireForSegment[.upperRight] = find.wire(in: 1, thatIsNot: lowerRight)
 
-    let possibleMiddles = find.wires(in: 4, butNotIn: 1)
-    let middle = find.wire(in: possibleMiddles, andInAllSignalsWithWireCount: 5)
+    let upperLeftAndMiddle = find.wires(in: 4, butNotIn: 1)
+    let middle = find.wire(in: upperLeftAndMiddle, andInAllSignalsWithWireCount: 5)
     wireForSegment[.middle] = middle
+    wireForSegment[.upperLeft] = find.wire(in: upperLeftAndMiddle, thatIsNot: middle)
 
-    wireForSegment[.upperLeft] = find.wire(in: possibleMiddles, thatIsNot: middle)
-
-    // mask to isolate bottom and lowerLeft
-    let mask = Set(find.signalForDigit(4) + [wireForSegment[.top]!])
-    let possibleBottoms = find.wires(in: 8, butNotIn: mask)
-
-    let bottom = find.wire(in: possibleBottoms, andInAllSignalsWithWireCount: 5)
+    let mask = find.signalForDigit(4).inserting(top)
+    let lowerLeftAndBottom = find.wires(in: 8, butNotIn: mask)
+    let bottom = find.wire(in: lowerLeftAndBottom, andInAllSignalsWithWireCount: 5)
     wireForSegment[.bottom] = bottom
-
-    wireForSegment[.lowerLeft] = find.wire(in: possibleBottoms, thatIsNot: bottom)
+    wireForSegment[.lowerLeft] = find.wire(in: lowerLeftAndBottom, thatIsNot: bottom)
 
     return wireForSegment.flipWithUniqueValues().mapValues(\.rawValue)
   }
@@ -56,13 +52,13 @@ struct Converter {
 
 // helper code to make algorithm code read more fluently
 private struct Finder {
-  private static let digitToKnownSignalCount = [1: 2, 4: 4, 7: 3, 8: 7]
+  private static let digitToKnownWireCount = [1: 2, 4: 4, 7: 3, 8: 7]
   private let signalForDigit: [Int : Signal]
   private let signalsByWireCount: [Int: [Signal]]
 
   init(signalsByWireCount: [Int : [Signal]]) {
     self.signalsByWireCount = signalsByWireCount
-    signalForDigit = Self.digitToKnownSignalCount.mapValues { signalsByWireCount[$0]!.only! }
+    signalForDigit = Self.digitToKnownWireCount.mapValues { signalsByWireCount[$0]!.only! }
   }
 
   func signalsForWireCount(_ count: Int) -> [Signal] {
@@ -76,10 +72,6 @@ private struct Finder {
 
   func wires(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Set<Character> {
     aSet.subtracting(bSet)
-  }
-
-  func wire(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Character {
-    wires(in: aSet, butNotIn: bSet).only!
   }
 
   func wire(in aInt: Int, butNotIn bInt: Int) -> Character {
@@ -107,13 +99,9 @@ private struct Finder {
   }
 
   func wire(in set: Set<Character>, andInAllSignalsWithWireCount count: Int) -> Character {
-    wires(in: set, andInAllSignalsWithWireCount: count).only!
-  }
-
-  func wires(in set: Set<Character>, andInAllSignalsWithWireCount count: Int) -> Set<Character> {
     let signals = signalsForWireCount(count)
     return set.filter { char in
       signals.allSatisfy { $0.contains(char) }
-    }
+    }.only!
   }
 }
