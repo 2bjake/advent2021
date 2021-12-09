@@ -46,5 +46,5 @@ public func partTwo() {
     .max(count: 3)
     .reduce(1, *)
 
-  print(result)
+  print(result) // 821560
 }

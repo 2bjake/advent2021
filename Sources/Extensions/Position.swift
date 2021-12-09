@@ -8,6 +8,10 @@ public struct Position: Hashable {
   }
 }
 
+public func +(position: Position, change: (row: Int, col: Int)) -> Position {
+  Position(position.row + change.row, position.col + change.col)
+}
+
 extension Position {
   public func next(toward: Position) -> Position? {
     var next = self
@@ -24,26 +28,25 @@ extension Array where Element: RandomAccessCollection, Element.Index == Int {
     get { self[position.col][position.row] }
   }
 
+  public func isValidPosition(_ position: Position) -> Bool {
+    indices.contains(position.col) && self[0].indices.contains(position.row)
+  }
+
   public func element(at position: Position) -> BaseElement? {
-    guard indices.contains(position.col) && self[0].indices.contains(position.row) else { return nil }
+    guard isValidPosition(position) else { return nil }
     return self[position]
   }
 
   public func adjacentPositions(of position: Position, includingDiagonals: Bool = false) -> [Position] {
-    var neighbors = [Position]()
-    for x in -1...1 {
-      for y in -1...1 {
-        // TODO: this all could be better...
-        var newPosition = position
-        newPosition.row += x
-        newPosition.col += y
-        if !includingDiagonals && newPosition.row != position.row && newPosition.col != position.col { continue }
-        if newPosition != position, element(at: newPosition) != nil {
-          neighbors.append(newPosition)
-        }
-      }
+    var changes = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+    if includingDiagonals {
+      changes.append(contentsOf: [(-1, -1), (-1, 1), (1, -1), (1, 1)])
     }
-    return neighbors
+
+    return changes.compactMap {
+      let newPosition = position + $0
+      return isValidPosition(newPosition) ? newPosition : nil
+    }
   }
 
   public func adjacentElements(of position: Position, includingDiagonals: Bool = false) -> [BaseElement] {
