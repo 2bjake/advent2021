@@ -33,13 +33,13 @@ struct Converter {
     let lowerRight = find.wire(in: 1, andInAllSignalsWithWireCount: 6)
     wireForSegment[.lowerRight] = lowerRight
 
-    wireForSegment[.upperRight] = find.wire(in: 1, butNot: lowerRight)
+    wireForSegment[.upperRight] = find.wire(in: 1, thatIsNot: lowerRight)
 
     let possibleMiddles = find.wires(in: 4, butNotIn: 1)
     let middle = find.wire(in: possibleMiddles, andInAllSignalsWithWireCount: 5)
     wireForSegment[.middle] = middle
 
-    wireForSegment[.upperLeft] = find.wire(in: possibleMiddles, butNot: middle)
+    wireForSegment[.upperLeft] = find.wire(in: possibleMiddles, thatIsNot: middle)
 
     // mask to isolate bottom and lowerLeft
     let mask = Set(find.signalForDigit(4) + [wireForSegment[.top]!])
@@ -48,7 +48,7 @@ struct Converter {
     let bottom = find.wire(in: possibleBottoms, andInAllSignalsWithWireCount: 5)
     wireForSegment[.bottom] = bottom
 
-    wireForSegment[.lowerLeft] = find.wire(in: possibleBottoms, butNot: bottom)
+    wireForSegment[.lowerLeft] = find.wire(in: possibleBottoms, thatIsNot: bottom)
 
     return wireForSegment.flipWithUniqueValues().mapValues(\.rawValue)
   }
@@ -94,12 +94,12 @@ private struct Finder {
     wires(in: signalForDigit(int), butNotIn: set)
   }
 
-  func wire(in set: Set<Character>, butNot char: Character) -> Character {
+  func wire(in set: Set<Character>, thatIsNot char: Character) -> Character {
     wires(in: set, butNotIn: [char]).only!
   }
 
-  func wire(in int: Int, butNot char: Character) -> Character {
-    wire(in: signalForDigit(int), butNot: char)
+  func wire(in int: Int, thatIsNot char: Character) -> Character {
+    wire(in: signalForDigit(int), thatIsNot: char)
   }
 
   func wire(in int: Int, andInAllSignalsWithWireCount count: Int) -> Character {
