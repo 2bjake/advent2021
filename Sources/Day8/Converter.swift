@@ -30,39 +30,54 @@ struct Converter {
   }
 
   private func buildMapping() -> [Character: Character] {
-    var wireForSegment = [Segment: Character]()
-
     let top = wire(in: 7, butNotIn: 1)
-    wireForSegment[.top] = top
 
-    let lowerRight = wire(in: 1, andInAllSignalsWithWireCount: 6)
-    wireForSegment[.lowerRight] = lowerRight
-    wireForSegment[.upperRight] = wire(in: 1, thatIsNot: lowerRight)
-
-    let upperLeftAndMiddle = wires(in: 4, butNotIn: 1)
-    let middle = wire(in: upperLeftAndMiddle, andInAllSignalsWithWireCount: 5)
-    wireForSegment[.middle] = middle
-    wireForSegment[.upperLeft] = wire(in: upperLeftAndMiddle, thatIsNot: middle)
-
+    let (lowerRight, upperRight) = wires(in: 1, orderedBy: isInAllSignalsWithWireCount(6))
+    let (middle, upperLeft) = wires(in: 4, butNotIn: 1, orderedBy: isInAllSignalsWithWireCount(5))
     let mask = signalForDigit(4).inserting(top)
-    let lowerLeftAndBottom = wires(in: 8, butNotIn: mask)
-    let bottom = wire(in: lowerLeftAndBottom, andInAllSignalsWithWireCount: 5)
-    wireForSegment[.bottom] = bottom
-    wireForSegment[.lowerLeft] = wire(in: lowerLeftAndBottom, thatIsNot: bottom)
+    let (bottom, lowerLeft) = wires(in: 8, butNotIn: mask, orderedBy: isInAllSignalsWithWireCount(5))
 
-    return wireForSegment.flipWithUniqueValues().mapValues(\.rawValue)
+    return [
+      top: Segment.top,
+      upperLeft: .upperLeft,
+      upperRight: .upperRight,
+      middle: .middle,
+      lowerLeft: .lowerLeft,
+      lowerRight: .lowerRight,
+      bottom: .bottom
+    ].mapValues(\.rawValue)
   }
 }
 
 // helper code to make algorithm code read more fluently
 private extension Converter {
-  func signalsForWireCount(_ count: Int) -> [Signal] {
-    signalsForWireCount[count] ?? []
-  }
-
   func signalForDigit(_ digit: Int) -> Signal {
     guard let signal = signalForDigit[digit] else { fatalError() }
     return signal
+  }
+
+  // makes a predicate which checks if a wire is in all signals with the specified wire count
+  func isInAllSignalsWithWireCount(_ count: Int) -> (Character) -> Bool {
+    return { wire in
+      signalsForWireCount[count]!.allSatisfy { $0.contains(wire) }
+    }
+  }
+
+  func wires(in aInt: Int, butNotIn bInt: Int? = nil, orderedBy predicate: (Character) -> Bool) -> (Character, Character) {
+    let signal = wires(in: aInt, butNotIn: bInt)
+    return wires(in: signal, orderedBy: predicate)
+  }
+
+  func wires(in int: Int, butNotIn set: Set<Character>, orderedBy predicate: (Character) -> Bool) -> (Character, Character) {
+    let signal = wires(in: signalForDigit(int), butNotIn: set)
+    return wires(in: signal, orderedBy: predicate)
+  }
+
+  func wires(in signal: Set<Character>, orderedBy predicate: (Character) -> Bool) -> (Character, Character) {
+    guard signal.count == 2 else { fatalError() }
+    let first = signal.first!
+    let second = signal.dropFirst().first!
+    return predicate(first) ? (first, second) : (second, first)
   }
 
   func wires(in aSet: Set<Character>, butNotIn bSet: Set<Character>) -> Set<Character> {
@@ -73,30 +88,8 @@ private extension Converter {
     wires(in: aInt, butNotIn: bInt).only!
   }
 
-  func wires(in aInt: Int, butNotIn bInt: Int) -> Set<Character> {
-    wires(in: signalForDigit(aInt), butNotIn: signalForDigit(bInt))
-  }
-
-  func wires(in int: Int, butNotIn set: Set<Character>) -> Set<Character> {
-    wires(in: signalForDigit(int), butNotIn: set)
-  }
-
-  func wire(in set: Set<Character>, thatIsNot char: Character) -> Character {
-    wires(in: set, butNotIn: [char]).only!
-  }
-
-  func wire(in int: Int, thatIsNot char: Character) -> Character {
-    wire(in: signalForDigit(int), thatIsNot: char)
-  }
-
-  func wire(in int: Int, andInAllSignalsWithWireCount count: Int) -> Character {
-    wire(in: signalForDigit(int), andInAllSignalsWithWireCount: count)
-  }
-
-  func wire(in set: Set<Character>, andInAllSignalsWithWireCount count: Int) -> Character {
-    let signals = signalsForWireCount(count)
-    return set.filter { char in
-      signals.allSatisfy { $0.contains(char) }
-    }.only!
+  func wires(in aInt: Int, butNotIn bInt: Int? = nil) -> Set<Character> {
+    let bSet = bInt == nil ? [] : signalForDigit(bInt!)
+    return wires(in: signalForDigit(aInt), butNotIn: bSet)
   }
 }
