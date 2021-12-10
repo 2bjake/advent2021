@@ -25,7 +25,7 @@ struct Converter {
   func build() -> (Signal) -> Signal {
     let mapping = buildMapping()
     return { signal in
-      Set(signal.map { mapping[$0]! })
+      Set(signal.compactMap(mapping))
     }
   }
 

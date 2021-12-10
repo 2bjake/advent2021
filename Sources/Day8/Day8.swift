@@ -49,7 +49,8 @@ extension Entry {
     let convert = Converter(uniqueSignals).build()
     return outputSignals
       .lazy
-      .map { Self.signalToDigit[convert($0)]! }
+      .map(convert)
+      .compactMap(Self.signalToDigit)
       .reduce(0) { result, value in
         result * 10 + value
       }
