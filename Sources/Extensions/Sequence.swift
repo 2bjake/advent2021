@@ -24,3 +24,9 @@ extension Sequence where Element: Comparable {
     return min...max
   }
 }
+
+extension Sequence {
+  public func compactMap<T>(_ mapping: [Element: T]) -> [T] {
+    self.compactMap { mapping[$0] }
+  }
+}
