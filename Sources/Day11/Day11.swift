@@ -21,9 +21,9 @@ extension FlashState {
         self = .done
       case (.reset, .done):
         self = .charging(0)
-      case (.flash, .charging), (.flash, .done), (.reset, .ready):
+      case (.flash, .charging), (.flash, .done), (.reset, .ready), (.reset, .charging):
         fatalError()
-      case (.reset, .charging), (.charge, .ready), (.charge, .done):
+      case (.charge, .ready), (.charge, .done):
         break
     }
     return (original, self)
