@@ -1,6 +1,6 @@
 import Extensions
 
-enum State {
+enum State: Equatable {
   case charging(Int)
   case ready
   case done
@@ -9,12 +9,12 @@ enum State {
 enum Event {
   case charge
   case flash
-  case finish
+  case reset
 }
 
 extension State {
   @discardableResult
-  mutating func process(_ event: Event) -> Bool {
+  mutating func process(_ event: Event) -> (before: Self, after: Self) {
     let original = self
     switch (event, self) {
       case (.charge, .charging(9)):
@@ -23,28 +23,25 @@ extension State {
         self = .charging(energy + 1)
       case (.flash, .ready):
         self = .done
-      case (.finish, .done):
+      case (.reset, .done):
         self = .charging(0)
-      case (.flash, .charging), (.flash, .done), (.finish, .ready):
+      case (.flash, .charging), (.flash, .done), (.reset, .ready):
         fatalError()
-      case (.finish, .charging), (.charge, .ready), (.charge, .done):
+      case (.reset, .charging), (.charge, .ready), (.charge, .done):
         break
     }
-    return didChangeState(from: original)
-  }
-
-  func didChangeState(from other: Self) -> Bool {
-    switch (self, other) {
-      case (.charging, .charging), (.ready, .ready), (.done, .done): return false
-      default: return true
-    }
+    return (original, self)
   }
 }
 
 extension State {
-  mutating func charge() -> Bool { process(.charge) }
-  mutating func flash() { process(.flash) }
-  mutating func finish() -> Bool { process(.finish) }
+  mutating func charge() -> Bool {
+    let (before, after) = process(.charge)
+    return before != .ready && after == .ready
+  }
+
+  mutating func flash() {process(.flash) }
+  mutating func reset() { process(.reset) }
 }
 
 func chargeAll(at positions: [Position]? = nil, in grid: inout [[State]]) -> [Position] {
@@ -58,21 +55,19 @@ func chargeAll(at positions: [Position]? = nil, in grid: inout [[State]]) -> [Po
 
 func step(grid: inout [[State]]) -> Int {
   var readyPositions = chargeAll(in: &grid)
+  var flashedPositions: Set<Position> = []
 
   while !readyPositions.isEmpty {
     let pos = readyPositions.removeLast()
     grid[pos].flash()
+    flashedPositions.insert(pos)
 
     let neighborPositions = grid.adjacentPositions(of: pos, includingDiagonals: true)
     readyPositions.append(contentsOf: chargeAll(at: neighborPositions, in: &grid))
   }
 
-  var flashCount = 0
-  for pos in grid.allPositions {
-    let changed = grid[pos].finish()
-    flashCount += changed ? 1 : 0
-  }
-  return flashCount
+  flashedPositions.forEach { grid[$0].reset() }
+  return flashedPositions.count
 }
 
 public func partOneAndTwo() {
