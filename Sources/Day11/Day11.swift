@@ -51,8 +51,7 @@ func step(grid: inout [[FlashState]]) -> Int {
   var readyPositions = chargeAll(in: &grid)
   var flashedPositions: Set<Position> = []
 
-  while !readyPositions.isEmpty {
-    let pos = readyPositions.removeLast()
+  while let pos = readyPositions.popLast() {
     grid[pos].flash()
     flashedPositions.insert(pos)
 
