@@ -1,55 +1,63 @@
 import Extensions
 
-struct Octopus {
-  enum State { case charging, ready, done }
-  private(set) var state = State.charging
-  var energy: Int
+enum State {
+  case charging(Int)
+  case ready
+  case done
+}
 
-  init(energy: Int) {
-    self.energy = energy
+enum Event {
+  case charge
+  case flash
+  case finish
+}
+
+extension State {
+  @discardableResult
+  mutating func process(_ event: Event) -> Bool {
+    let original = self
+    switch (event, self) {
+      case (.charge, .charging(let energy)) where energy == 9:
+        self = .ready
+      case (.charge, .charging(let energy)):
+        self = .charging(energy + 1)
+      case (.flash, .ready):
+        self = .done
+      case (.finish, .done):
+        self = .charging(0)
+      case (.flash, .charging), (.flash, .done), (.finish, .ready):
+        fatalError()
+      case (.finish, .charging), (.charge, .ready), (.charge, .done):
+        break
+    }
+    return didChangeState(from: original)
+  }
+
+  func didChangeState(from other: Self) -> Bool {
+    switch (self, other) {
+      case (.charging, .charging), (.ready, .ready), (.done, .done): return false
+      default: return true
+    }
   }
 }
 
-extension Octopus {
-  // returns true if octopus changed state
-  mutating func charge() -> Bool {
-    energy += 1
-    if energy == 10 {
-      state = .ready
-      return true
-    }
-    return false
-  }
-
-  mutating func flash() {
-    guard state == .ready else { fatalError() }
-    state = .done
-  }
-
-  // returns true if octopus changed state
-  mutating func finalize() -> Bool {
-    guard state != .ready else { fatalError() }
-    if state == .done {
-      energy = 0
-      state = .charging
-      return true
-    }
-    return false
-  }
+extension State {
+  mutating func charge() -> Bool { process(.charge) }
+  mutating func flash() { process(.flash) }
+  mutating func finish() -> Bool { process(.finish) }
 }
 
-func chargeAll(at positions: [Position], in grid: inout [[Octopus]]) -> [Position] {
+func chargeAll(at positions: [Position]? = nil, in grid: inout [[State]]) -> [Position] {
   var readyPositions = [Position]()
-  for pos in positions {
-    if grid[pos].charge() {
-      readyPositions.append(pos)
-    }
+  for pos in positions ?? Array(grid.allPositions) {
+    let changed = grid[pos].charge()
+    if changed { readyPositions.append(pos) }
   }
   return readyPositions
 }
 
-func step(grid: inout [[Octopus]]) -> Int {
-  var readyPositions = chargeAll(at: Array(grid.allPositions), in: &grid)
+func step(grid: inout [[State]]) -> Int {
+  var readyPositions = chargeAll(in: &grid)
 
   while !readyPositions.isEmpty {
     let pos = readyPositions.removeLast()
@@ -59,21 +67,26 @@ func step(grid: inout [[Octopus]]) -> Int {
     readyPositions.append(contentsOf: chargeAll(at: neighborPositions, in: &grid))
   }
 
-  return grid.allPositions.map { grid[$0].finalize() }.count { $0 }
+  var flashCount = 0
+  for pos in grid.allPositions {
+    let changed = grid[pos].finish()
+    flashCount += changed ? 1 : 0
+  }
+  return flashCount
 }
 
-public func partOne() {
-  var grid = input.map { $0.compactMap(Int.init).map(Octopus.init) }
+public func partOneAndTwo() {
+  var grid = input.map { $0.compactMap(Int.init).map(State.charging) }
+
+  // part one
   var flashCount = 0
   for _ in 0..<100 {
     flashCount += step(grid: &grid)
   }
   print(flashCount) // 1755
-}
 
-public func partTwo() {
-  var grid = input.map { $0.compactMap(Int.init).map(Octopus.init) }
-  var stepCount = 1
+  // part two
+  var stepCount = 101
   while step(grid: &grid) != 100 {
     stepCount += 1
   }
