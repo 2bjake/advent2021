@@ -1,18 +1,14 @@
 import Extensions
 
-enum State: Equatable {
+enum FlashState: Equatable {
   case charging(Int)
   case ready
   case done
 }
 
-enum Event {
-  case charge
-  case flash
-  case reset
-}
+extension FlashState {
+  enum Event { case charge, flash, reset }
 
-extension State {
   @discardableResult
   mutating func process(_ event: Event) -> (before: Self, after: Self) {
     let original = self
@@ -32,19 +28,17 @@ extension State {
     }
     return (original, self)
   }
-}
 
-extension State {
   mutating func charge() -> Bool {
     let (before, after) = process(.charge)
     return before != .ready && after == .ready
   }
 
-  mutating func flash() {process(.flash) }
+  mutating func flash() { process(.flash) }
   mutating func reset() { process(.reset) }
 }
 
-func chargeAll(at positions: [Position]? = nil, in grid: inout [[State]]) -> [Position] {
+func chargeAll(at positions: [Position]? = nil, in grid: inout [[FlashState]]) -> [Position] {
   var readyPositions = [Position]()
   for pos in positions ?? Array(grid.allPositions) {
     let changed = grid[pos].charge()
@@ -53,7 +47,7 @@ func chargeAll(at positions: [Position]? = nil, in grid: inout [[State]]) -> [Po
   return readyPositions
 }
 
-func step(grid: inout [[State]]) -> Int {
+func step(grid: inout [[FlashState]]) -> Int {
   var readyPositions = chargeAll(in: &grid)
   var flashedPositions: Set<Position> = []
 
@@ -71,16 +65,14 @@ func step(grid: inout [[State]]) -> Int {
 }
 
 public func partOneAndTwo() {
-  var grid = input.map { $0.compactMap(Int.init).map(State.charging) }
+  var grid = input.map { $0.compactMap(Int.init).map(FlashState.charging) }
 
-  // part one
   var flashCount = 0
   for _ in 0..<100 {
     flashCount += step(grid: &grid)
   }
   print(flashCount) // 1755
 
-  // part two
   var stepCount = 101
   while step(grid: &grid) != 100 {
     stepCount += 1
