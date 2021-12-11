@@ -17,7 +17,7 @@ extension State {
   mutating func process(_ event: Event) -> Bool {
     let original = self
     switch (event, self) {
-      case (.charge, .charging(let energy)) where energy == 9:
+      case (.charge, .charging(9)):
         self = .ready
       case (.charge, .charging(let energy)):
         self = .charging(energy + 1)
