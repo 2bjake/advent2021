@@ -1,8 +1,8 @@
-import Day11
+import Day12  
 import Extensions
 
-partOneAndTwo()
-//partTwo()
+partOne()
+partTwo()
 
 //printAvgMillisElapsed("partOne", runTimes: 1000, for: partOne)
 //printAvgMillisElapsed("partTwo", runTimes: 1000, for: partTwo)
