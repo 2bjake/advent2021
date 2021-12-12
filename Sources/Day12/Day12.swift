@@ -7,7 +7,8 @@ let paths: [String: Set<String>] = input.reduce(into: [:]) { result, line in
 }
 
 func isSmall(_ name: String) -> Bool {
-  name != "start" && name.lowercased() == name
+  guard name != "start" && name != "end" else { return false }
+  return name.first?.isLowercase == true
 }
 
 func findPathsToEnd(startingFrom currentPath: [String] = [], havingVisited smallCavesVisited: Set<String> = [], canVisitTwice: Bool = false) -> Set<[String]> {
