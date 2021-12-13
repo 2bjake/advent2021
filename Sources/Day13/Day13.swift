@@ -20,6 +20,11 @@ struct Fold {
   }
 }
 
+func makePaper(rows: Int, cols: Int) -> [[Bool]] {
+  let row = Array(repeating: false, count: cols)
+  return Array(repeating: row, count: rows)
+}
+
 func parse() -> ([[Bool]], [Fold]) {
   let parts = input.components(separatedBy: "\n\n")
   let positions = parts[0].split(separator: "\n").map(Position.init)
@@ -28,18 +33,10 @@ func parse() -> ([[Bool]], [Fold]) {
   let rowCount = folds.first { $0.direction == .up }!.location * 2 + 1
   let colCount = folds.first { $0.direction == .left }!.location * 2 + 1
 
-  let grid: [[Bool]] = positions.reduce(into: makeGrid(rowCount: rowCount, colCount: colCount)) { result, pos in
+  let paper = positions.reduce(into: makePaper(rows: rowCount, cols: colCount)) { result, pos in
     result[pos] = true
   }
-
-
-
-  return (grid, folds)
-}
-
-func makeGrid(rowCount: Int, colCount: Int) -> [[Bool]] {
-  let row = Array(repeating: false, count: colCount)
-  return Array(repeating: row, count: rowCount)
+  return (paper, folds)
 }
 
 func foldPaper(_ paper: [[Bool]], at fold: Fold) -> [[Bool]] {
@@ -50,51 +47,45 @@ func foldPaper(_ paper: [[Bool]], at fold: Fold) -> [[Bool]] {
   }
 }
 
-func foldPaper(_ grid: [[Bool]], upAt foldRow: Int) -> [[Bool]] {
-  var result = makeGrid(rowCount: foldRow, colCount: grid[0].count)
-
-  let colLastIdx = grid.count - 1
+func foldPaper(_ paper: [[Bool]], upAt foldRow: Int) -> [[Bool]] {
+  var result = makePaper(rows: foldRow, cols: paper[0].count)
+  let colLastIdx = paper.count - 1
 
   for y in 0..<foldRow {
-    for x in grid[0].indices {
-      result[y][x] = grid[y][x] || grid[colLastIdx - y][x]
+    for x in paper[0].indices {
+      result[y][x] = paper[y][x] || paper[colLastIdx - y][x]
     }
   }
   return result
 }
 
-func foldPaper(_ grid: [[Bool]], leftAt foldCol: Int) -> [[Bool]] {
-  var result = makeGrid(rowCount: grid.count, colCount: foldCol)
+func foldPaper(_ paper: [[Bool]], leftAt foldCol: Int) -> [[Bool]] {
+  var result = makePaper(rows: paper.count, cols: foldCol)
+  let rowLastIdx = paper[0].count - 1
 
-  let rowLastIdx = grid[0].count - 1
-
-  for y in grid.indices {
+  for y in paper.indices {
     for x in 0..<foldCol {
-      result[y][x] = grid[y][x] || grid[y][rowLastIdx - x]
+      result[y][x] = paper[y][x] || paper[y][rowLastIdx - x]
     }
   }
   return result
 }
 
+func makeFoldedPaper(_ foldCount: Int? = nil) -> [[Bool]] {
+  let (paper, folds) = parse()
+
+  return folds.prefix(foldCount ?? folds.count).reduce(into: paper) { result, fold in
+    result = foldPaper(result, at: fold)
+  }
+}
 
 public func partOne() {
-  let (paper, folds) = parse()
-  let folded = foldPaper(paper, at: folds.first!)
-  let dotCount = folded.allPositions.count { folded[$0] }
+  let dotCount = makeFoldedPaper(1).joined().count { $0 }
   print(dotCount) // 675
 }
 
-func printRow(_ row: [Bool]) {
-  row.forEach { print($0 ? "#" : ".", terminator: "") }
-  print()
-}
-
 public func partTwo() {
-  let (paper, folds) = parse()
-  var folded = paper
-  for fold in folds {
-    folded = foldPaper(folded, at: fold)
+  makeFoldedPaper().forEach { row in
+    print(row.map { $0 ? "#" : "." }.joined()) // HZKHFEJZ
   }
-
-  folded.forEach(printRow)
 }
