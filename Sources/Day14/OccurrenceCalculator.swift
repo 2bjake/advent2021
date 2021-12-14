@@ -13,7 +13,7 @@ extension Expansion {
     self.init(.init(first, second), count)
   }
 
-  /// Expands expansion into subExpansions
+  /// Expands expansion into in-order subExpansions
   /// (BC 2) -> BDC -> (BD 1) (DC 1)
   /// (BC 3) -> BDC -> (BD 2) (DC 2)
   func expand(inserting char: Character) -> [Expansion] {
@@ -31,32 +31,30 @@ struct OccurrenceCalculator {
     self.rules = rules
   }
 
-  private mutating func calculateOccurrences(for expansions: [Expansion]) -> [Character: UInt64] {
-    var occurrences = [Character: UInt64]()
-    for expansion in expansions {
-      var expansionOccurrences = calculateOccurrences(for: expansion)
-      expansionOccurrences[expansion.pair.second]! -= 1
-      occurrences.merge(expansionOccurrences, uniquingKeysWith: +)
-    }
-    occurrences[expansions.last!.pair.second]! += 1
-    return occurrences
-  }
-
   private mutating func calculateOccurrences(for expansion: Expansion) -> [Character: UInt64] {
     if let occurrences = cache[expansion] { return occurrences }
 
-    var occurrences = [Character: UInt64]()
-
     let insertion = rules[expansion.pair]!
+    var occurrences = [Character: UInt64]()
     if expansion.count == 1 {
       let pair = expansion.pair
       occurrences = [pair.first, pair.second, insertion].reduce(into: [:]) { result, value in result[value, default: 0] += 1 }
     } else {
       occurrences = calculateOccurrences(for: expansion.expand(inserting: insertion))
     }
-
     cache[expansion] = occurrences
     return occurrences
+  }
+
+  private mutating func calculateOccurrences(for adjacentExpansions: [Expansion]) -> [Character: UInt64] {
+    var result = [Character: UInt64]()
+    for expansion in adjacentExpansions {
+      var occurrences = calculateOccurrences(for: expansion)
+      occurrences[expansion.pair.second]! -= 1 // The occurrence for the second char will be counted in the next expansion (or after the loop)
+      result.merge(occurrences, uniquingKeysWith: +)
+    }
+    result[adjacentExpansions.last!.pair.second]! += 1 // add back in occurrence for last char
+    return result
   }
 
   mutating func calculateOccurrences(in template: [Character], expandingTimes times: Int) -> [Character: UInt64] {
