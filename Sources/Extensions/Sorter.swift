@@ -1,8 +1,8 @@
 
-typealias Sorter<T> = (T, T) -> Bool
-typealias ThrowingSorter<T> = (T, T) throws -> Bool
+public typealias Sorter<T> = (T, T) -> Bool
+public typealias ThrowingSorter<T> = (T, T) throws -> Bool
 
-func makeSorter<Root, Subject: Comparable>(
+public func makeSorter<Root, Subject: Comparable>(
   for keyPath: KeyPath<Root, Subject>,
   by areInIncreasingOrder: @escaping Sorter<Subject> = (<)) -> Sorter<Root> {
     return {
@@ -10,7 +10,7 @@ func makeSorter<Root, Subject: Comparable>(
     }
 }
 
-func makeSorter<Root, Subject: Comparable>(
+public func makeSorter<Root, Subject: Comparable>(
   for keyPath: KeyPath<Root, Subject>,
   by areInIncreasingOrder: @escaping ThrowingSorter<Subject> = (<)) -> ThrowingSorter<Root> {
     return {

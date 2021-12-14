@@ -42,3 +42,9 @@ extension Collection {
     return self.first
   }
 }
+
+extension Collection {
+  public var second: Element? {
+    self.dropFirst().first
+  }
+}
