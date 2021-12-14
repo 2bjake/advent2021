@@ -1,5 +1,5 @@
 import Day14
-import Foundation
+import Extensions
 
 partOne()
 partTwo()
