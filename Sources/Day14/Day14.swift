@@ -27,8 +27,8 @@ func growPolymer(_ times: Int) -> UInt64 {
 
   var calculator = OccurrenceCalculator(rules: rules)
   let occurrences = calculator.calculateOccurrences(in: template, expandingTimes: times)
-  let (min, max) = occurrences.minAndMax(by: makeSorter(for: \.value))!
-  return max.value - min.value
+  let (min, max) = occurrences.values.minAndMax()!
+  return max - min
 }
 
 public func partOne() {
