@@ -22,14 +22,14 @@ extension Collection where Element: Hashable {
 
   public func leastCommon() -> Element? {
     occurrenceCounts()
-      .min(count: 2, sortedBy: makeSorter(for: \.count))
+      .min(count: 2, sortedBy: sorter(for: \.count))
       .firstIfUnique(on: \.count)?
       .element
   }
 
   public func mostCommon() -> Element? {
     return occurrenceCounts()
-      .max(count: 2, sortedBy: makeSorter(for: \.count))
+      .max(count: 2, sortedBy: sorter(for: \.count))
       .reversed()
       .firstIfUnique(on: \.count)?
       .element

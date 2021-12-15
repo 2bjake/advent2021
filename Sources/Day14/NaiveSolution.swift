@@ -21,8 +21,8 @@ enum NaiveSolution {
     }
 
     let counts = result.occurrenceCounts()
-    let max = counts.max(by: makeSorter(for: \.count))!
-    let min = counts.min(by: makeSorter(for: \.count))!
+    let max = counts.max(by: sorter(for: \.count))!
+    let min = counts.min(by: sorter(for: \.count))!
     return max.count - min.count
   }
 }
