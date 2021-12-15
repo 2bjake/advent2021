@@ -26,7 +26,7 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
     .package(url: "https://github.com/apple/swift-collections.git", .upToNextMajor(from: "1.0.0")),
-    .package(url: "https://github.com/davecom/SwiftPriorityQueue.git", branch: "master")
+    .package(url: "https://github.com/davecom/SwiftPriorityQueue.git", revision: "7b4aa89d9740779f6123929c3e9e7e6b86b83671")
   ],
   targets: [
     .executableTarget(
