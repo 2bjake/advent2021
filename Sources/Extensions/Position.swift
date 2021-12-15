@@ -21,12 +21,32 @@ extension Position {
   }
 }
 
+public enum Direction { case up, left, down, right }
+
+extension Position {
+  public func moved(_ direction: Direction) -> Position {
+    switch direction {
+      case .up: return Position(row, col - 1)
+      case .down: return Position(row, col + 1)
+      case .left: return Position(row - 1, col)
+      case .right: return Position(row + 1, col)
+    }
+  }
+
+  public mutating func move(_ direction: Direction) {
+    self = self.moved(direction)
+  }
+}
+
 extension Array where Element: RandomAccessCollection, Element.Index == Int {
   public typealias BaseElement = Element.Element
 
   public subscript(_ position: Position) -> BaseElement {
     get { self[position.col][position.row] }
   }
+
+  public var firstPosition: Position { .init(0, 0) }
+  public var lastPosition: Position { .init(self[0].count - 1, self.count - 1) }
 
   public func isValidPosition(_ position: Position) -> Bool {
     indices.contains(position.col) && self[0].indices.contains(position.row)
@@ -35,6 +55,12 @@ extension Array where Element: RandomAccessCollection, Element.Index == Int {
   public func element(at position: Position) -> BaseElement? {
     guard isValidPosition(position) else { return nil }
     return self[position]
+  }
+
+  public func positions(_ directions: [Direction], of position: Position) -> [Position] {
+    directions
+      .map { position.moved($0) }
+      .filter { isValidPosition($0) }
   }
 
   public func adjacentPositions(of position: Position, includingDiagonals: Bool = false) -> [Position] {

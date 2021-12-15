@@ -5,7 +5,8 @@ import PackageDescription
 
 // if a specific day needs additional dependencies, add them here
 let dayDependencies: [Int: [Target.Dependency]] = [
-  6 : [.product(name: "Collections", package: "swift-collections")]
+  6 : [.product(name: "Collections", package: "swift-collections")],
+  15 : [.product(name: "SwiftPriorityQueue", package: "SwiftPriorityQueue")]
 ]
 
 let dayTargets: [Target] = (1...25).map {
@@ -24,7 +25,8 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
-    .package(url: "https://github.com/apple/swift-collections.git", .upToNextMajor(from: "1.0.0"))
+    .package(url: "https://github.com/apple/swift-collections.git", .upToNextMajor(from: "1.0.0")),
+    .package(url: "https://github.com/davecom/SwiftPriorityQueue.git", branch: "master")
   ],
   targets: [
     .executableTarget(
