@@ -1,12 +1,11 @@
-import Algorithms
 import Extensions
 import SwiftPriorityQueue
 
 let riskGrid = input.map { $0.compactMap(Int.init) }
 
 func value(at position: Position) -> Int {
-  let (rightShift, normalizedRow) = position.row.quotientAndRemainder(dividingBy: riskGrid[0].count)
-  let (downShift, normalizedCol) = position.col.quotientAndRemainder(dividingBy: riskGrid.count)
+  let (rightShift, normalizedRow) = position.row.quotientAndRemainder(dividingBy: riskGrid.rowCount)
+  let (downShift, normalizedCol) = position.col.quotientAndRemainder(dividingBy: riskGrid.colCount)
   let normalizedPos = Position(normalizedRow, normalizedCol)
   let adjustment = rightShift + downShift
 
@@ -22,47 +21,20 @@ struct PositionPriority: Comparable {
   }
 }
 
-func riskToEnd() -> Int {
-  let start = riskGrid.firstPosition
-  var distance = [start: 0]
-
-  var queue = PriorityQueue<PositionPriority>(ascending: true)
-  queue.push(.init(position: start, cost: 0))
-
-
-  while let posPriority = queue.pop() {
-    let currentPos = posPriority.position
-    if currentPos == riskGrid.lastPosition {
-      break
-    }
-
-    for neighborPos in riskGrid.adjacentPositions(of: currentPos) {
-      let temp = distance[currentPos]! + riskGrid[neighborPos]
-      if temp < distance[neighborPos, default: .max] {
-        if let oldDistance = distance[neighborPos] {
-          queue.remove(.init(position: neighborPos, cost: oldDistance))
-        }
-        distance[neighborPos] = temp
-        queue.push(.init(position: neighborPos, cost: distance[neighborPos]!))
-      }
-    }
-  }
-
-  return distance[riskGrid.lastPosition]!
-}
-
-func bigAdjacentPositions(of pos: Position) -> [Position] {
-  [pos.moved(.up), pos.moved(.down), pos.moved(.left), pos.moved(.right)].filter {
-    $0.row <= riskGrid[0].count * 5 - 1 &&
-    $0.col <= riskGrid.count * 5 - 1 &&
-    $0.row >= 0 &&
-    $0.col >= 0
-  }
-}
-
-func riskToEndBig() -> Int {
+func lowestRiskToEnd(repeating: Int = 1) -> Int {
   let startPos = riskGrid.firstPosition
-  let endPos = Position(riskGrid[0].count * 5 - 1, riskGrid.count * 5 - 1)
+
+  let rowCount = riskGrid.rowCount * repeating
+  let colCount = riskGrid.colCount * repeating
+
+  let endPos = Position(rowCount - 1, colCount - 1)
+
+  func adjacentPositions(of pos: Position) -> [Position] {
+    pos.adjacentPositions().filter {
+      (0..<rowCount).contains($0.row) &&
+      (0..<colCount).contains($0.col)
+    }
+  }
 
   var distance = [startPos: 0]
 
@@ -74,13 +46,13 @@ func riskToEndBig() -> Int {
     let currentPos = posPriority.position
     guard currentPos != endPos else { break }
 
-    for neighborPos in bigAdjacentPositions(of: currentPos) {
-      let temp = distance[currentPos]! + value(at: neighborPos)
-      if temp < distance[neighborPos, default: .max] {
+    for neighborPos in adjacentPositions(of: currentPos) {
+      let newDistance = distance[currentPos]! + value(at: neighborPos)
+      if newDistance < distance[neighborPos, default: .max] {
         if let oldDistance = distance[neighborPos] {
           queue.remove(.init(position: neighborPos, cost: oldDistance))
         }
-        distance[neighborPos] = temp
+        distance[neighborPos] = newDistance
         queue.push(.init(position: neighborPos, cost: distance[neighborPos]!))
       }
     }
@@ -90,10 +62,9 @@ func riskToEndBig() -> Int {
 }
 
 public func partOne() {
-  print(riskToEnd()) // 698
+  print(lowestRiskToEnd()) // 698
 }
 
 public func partTwo() {
-  print(riskToEndBig()) // 3022
+  print(lowestRiskToEnd(repeating: 5)) // 3022
 }
-

@@ -19,27 +19,22 @@ extension Position {
     next.col.advance(toward: toward.col)
     return next != self ? next : nil
   }
-}
 
-public enum Direction { case up, left, down, right }
-
-extension Position {
-  public func moved(_ direction: Direction) -> Position {
-    switch direction {
-      case .up: return Position(row, col - 1)
-      case .down: return Position(row, col + 1)
-      case .left: return Position(row - 1, col)
-      case .right: return Position(row + 1, col)
+  public func adjacentPositions(includingDiagonals: Bool = false) -> [Position] {
+    var changes = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+    if includingDiagonals {
+      changes.append(contentsOf: [(-1, -1), (-1, 1), (1, -1), (1, 1)])
     }
-  }
 
-  public mutating func move(_ direction: Direction) {
-    self = self.moved(direction)
+    return changes.map { self + $0 }
   }
 }
 
 extension Array where Element: RandomAccessCollection, Element.Index == Int {
   public typealias BaseElement = Element.Element
+
+  public var rowCount: Int { self[0].count }
+  public var colCount: Int { self.count }
 
   public subscript(_ position: Position) -> BaseElement {
     get { self[position.col][position.row] }
@@ -57,21 +52,21 @@ extension Array where Element: RandomAccessCollection, Element.Index == Int {
     return self[position]
   }
 
-  public func positions(_ directions: [Direction], of position: Position) -> [Position] {
-    directions
-      .map { position.moved($0) }
-      .filter { isValidPosition($0) }
-  }
+//  public func adjacentPositions(of position: Position, includingDiagonals: Bool = false) -> [Position] {
+//    var changes = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+//    if includingDiagonals {
+//      changes.append(contentsOf: [(-1, -1), (-1, 1), (1, -1), (1, 1)])
+//    }
+//
+//    return changes.compactMap {
+//      let newPosition = position + $0
+//      return isValidPosition(newPosition) ? newPosition : nil
+//    }
+//  }
 
   public func adjacentPositions(of position: Position, includingDiagonals: Bool = false) -> [Position] {
-    var changes = [(0, -1), (0, 1), (-1, 0), (1, 0)]
-    if includingDiagonals {
-      changes.append(contentsOf: [(-1, -1), (-1, 1), (1, -1), (1, 1)])
-    }
-
-    return changes.compactMap {
-      let newPosition = position + $0
-      return isValidPosition(newPosition) ? newPosition : nil
+    position.adjacentPositions(includingDiagonals: includingDiagonals).filter {
+      isValidPosition($0)
     }
   }
 
