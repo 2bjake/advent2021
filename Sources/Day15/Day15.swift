@@ -4,8 +4,8 @@ import SwiftPriorityQueue
 let riskGrid = input.map { $0.compactMap(Int.init) }
 
 func value(at position: Position) -> Int {
-  let (rightShift, normalizedRow) = position.row.quotientAndRemainder(dividingBy: riskGrid.rowCount)
-  let (downShift, normalizedCol) = position.col.quotientAndRemainder(dividingBy: riskGrid.colCount)
+  let (downShift, normalizedRow) = position.row.quotientAndRemainder(dividingBy: riskGrid.numberOfRows)
+  let (rightShift, normalizedCol) = position.col.quotientAndRemainder(dividingBy: riskGrid.numberOfColumns)
   let normalizedPos = Position(normalizedRow, normalizedCol)
   let adjustment = rightShift + downShift
 
@@ -24,8 +24,8 @@ struct PositionPriority: Comparable {
 func lowestRiskToEnd(repeating: Int = 1) -> Int {
   let startPos = riskGrid.firstPosition
 
-  let rowCount = riskGrid.rowCount * repeating
-  let colCount = riskGrid.colCount * repeating
+  let rowCount = riskGrid.numberOfRows * repeating
+  let colCount = riskGrid.numberOfColumns * repeating
 
   let endPos = Position(rowCount - 1, colCount - 1)
 
@@ -62,9 +62,9 @@ func lowestRiskToEnd(repeating: Int = 1) -> Int {
 }
 
 public func partOne() {
-  print(lowestRiskToEnd()) // 698
+  assert(lowestRiskToEnd() == 698) // 698
 }
 
 public func partTwo() {
-  print(lowestRiskToEnd(repeating: 5)) // 3022
+  assert(lowestRiskToEnd(repeating: 5) == 3022) // 3022
 }

@@ -70,11 +70,11 @@ public func partOneAndTwo() {
   for _ in 0..<100 {
     flashCount += step(grid: &grid)
   }
-  print(flashCount) // 1755
+  assert(flashCount == 1755) // 1755
 
   var stepCount = 101
   while step(grid: &grid) != 100 {
     stepCount += 1
   }
-  print(stepCount) // 212
+  assert(stepCount == 212) // 212
 }

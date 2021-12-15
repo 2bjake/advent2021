@@ -4,7 +4,7 @@ import Extensions
 extension Position {
   init(_ source: Substring) {
     let parts = source.split(separator: ",")
-    self.init(Int(parts[0])!, Int(parts[1])!)
+    self.init(Int(parts[1])!, Int(parts[0])!)
   }
 }
 
@@ -48,11 +48,11 @@ func foldPaper(_ paper: [[Bool]], at fold: Fold) -> [[Bool]] {
 }
 
 func foldPaper(_ paper: [[Bool]], upAt foldRow: Int) -> [[Bool]] {
-  var result = makePaper(rows: foldRow, cols: paper[0].count)
+  var result = makePaper(rows: foldRow, cols: paper.numberOfColumns)
   let colLastIdx = paper.count - 1
 
   for y in 0..<foldRow {
-    for x in paper[0].indices {
+    for x in 0..<paper.numberOfColumns {
       result[y][x] = paper[y][x] || paper[colLastIdx - y][x]
     }
   }
@@ -61,11 +61,11 @@ func foldPaper(_ paper: [[Bool]], upAt foldRow: Int) -> [[Bool]] {
 
 func foldPaper(_ paper: [[Bool]], leftAt foldCol: Int) -> [[Bool]] {
   var result = makePaper(rows: paper.count, cols: foldCol)
-  let rowLastIdx = paper[0].count - 1
+  let maxColIdx = paper.numberOfColumns - 1
 
   for y in paper.indices {
     for x in 0..<foldCol {
-      result[y][x] = paper[y][x] || paper[y][rowLastIdx - x]
+      result[y][x] = paper[y][x] || paper[y][maxColIdx - x]
     }
   }
   return result
@@ -81,7 +81,7 @@ func makeFoldedPaper(_ foldCount: Int? = nil) -> [[Bool]] {
 
 public func partOne() {
   let dotCount = makeFoldedPaper(1).joined().count { $0 }
-  print(dotCount) // 675
+  assert(dotCount == 675) // 675
 }
 
 public func partTwo() {

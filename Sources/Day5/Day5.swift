@@ -22,10 +22,10 @@ public func partOne() {
   let positions = input
     .map(PositionSequence.init)
     .filter { $0.orientation != .diagonal }
-  print(countOverlaps(in: positions)) // 7436
+  assert(countOverlaps(in: positions) == 7436) // 7436
 }
 
 public func partTwo() {
   let positions = input.map(PositionSequence.init)
-  print(countOverlaps(in: positions)) // 21104
+  assert(countOverlaps(in: positions) == 21104) // 21104
 }

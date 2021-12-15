@@ -23,7 +23,7 @@ public func partOne() {
 
   let epsilonBits = gammaBits.map { $0.inverted() }
 
-  print(Int(gammaBits) * Int(epsilonBits)) // 3277364
+  assert(Int(gammaBits) * Int(epsilonBits) == 3277364) // 3277364
 }
 
 func filterInput(by bitCriteria: ([Bit]) -> Bit) -> [Bit] {
@@ -40,5 +40,5 @@ func filterInput(by bitCriteria: ([Bit]) -> Bit) -> [Bit] {
 public func partTwo() {
   let oxygenRating = filterInput { $0.mostCommon() ?? .one }
   let scrubberRating = filterInput { $0.leastCommon() ?? .zero }
-  print(Int(scrubberRating) * Int(oxygenRating)) // 5736383
+  assert(Int(scrubberRating) * Int(oxygenRating) == 5736383) // 5736383
 }

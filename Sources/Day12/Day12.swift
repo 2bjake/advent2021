@@ -30,10 +30,10 @@ func findPathsToEnd(startingFrom currentPath: [String] = [], havingVisited small
 
 public func partOne() {
   let pathCount = findPathsToEnd().count
-  print(pathCount) // 3292
+  assert(pathCount == 3292) // 3292
 }
 
 public func partTwo() {
   let pathCount = findPathsToEnd(canVisitTwice: true).count
-  print(pathCount) // 89592
+  assert(pathCount == 89592) // 89592
 }

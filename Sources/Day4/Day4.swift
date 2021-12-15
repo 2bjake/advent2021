@@ -82,9 +82,9 @@ func parseInput() -> (numbers: [Int], boards: [Board]) {
 }
 
 public func partOne() {
-  print(findScoreForBoardThatWins(.first)!) // 12796
+  assert(findScoreForBoardThatWins(.first)! == 12796) // 12796
 }
 
 public func partTwo() {
-  print(findScoreForBoardThatWins(.last)!) // 18063
+  assert(findScoreForBoardThatWins(.last)! == 18063) // 18063
 }

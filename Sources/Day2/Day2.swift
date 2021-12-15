@@ -21,12 +21,12 @@ func processCommands() -> (Int, Int, Int) {
 
 public func partOne() {
   let (horizontalPos, _, depth) = processCommands()
-  print(horizontalPos * depth) // 1660158
+  assert(horizontalPos * depth == 1660158) // 1660158
 }
 
 public func partTwo() {
   let (horizontalPos, depth, _) = processCommands()
-  print(horizontalPos * depth) // 1604592846
+  assert(horizontalPos * depth == 1604592846) // 1604592846
 }
 
 

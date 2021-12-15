@@ -13,7 +13,7 @@ public func partOne() {
     .lazy
     .map(countKnownPatterns)
     .reduce(0, +)
-  print(count) // 247
+  assert(count == 247) // 247
 }
 
 ////// part 2
@@ -63,5 +63,5 @@ public func partTwo() {
     .map { Entry($0).numericValue() }
     .reduce(0, +)
 
-  print(sum) // 933305
+  assert(sum == 933305) // 933305
 }

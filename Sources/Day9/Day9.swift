@@ -15,7 +15,7 @@ public func partOne() {
   let sum = findLowPositions(in: grid)
     .map { grid[$0] + 1 }
     .reduce(0, +)
-  print(sum) // 631
+  assert(sum == 631) // 631
 }
 
 func measureBasin(at position: Position, in grid: [[Int]]) -> Int {
@@ -44,5 +44,5 @@ public func partTwo() {
     .max(count: 3)
     .reduce(1, *)
 
-  print(result) // 821560
+  assert(result == 821560) // 821560
 }

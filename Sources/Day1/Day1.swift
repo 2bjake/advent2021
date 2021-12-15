@@ -2,7 +2,7 @@ import Algorithms
 import Extensions
 
 public func partOne() {
-  print(input.countAdjacentPairsWhereIncreasing()) // 1655
+  assert(input.countAdjacentPairsWhereIncreasing() == 1655) // 1655
 }
 
 public func partTwo() {
@@ -11,7 +11,7 @@ public func partTwo() {
     .map { $0.reduce(0, +) }
     .countAdjacentPairsWhereIncreasing()
 
-  print(count) // 1683
+  assert(count == 1683) // 1683
 }
 
 public func partTwoRajatStyle() {

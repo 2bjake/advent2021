@@ -32,9 +32,9 @@ func growPolymer(_ times: Int) -> UInt64 {
 }
 
 public func partOne() {
-  print(growPolymer(10)) // 2797
+  assert(growPolymer(10) == 2797) // 2797
 }
 
 public func partTwo() {
-  print(growPolymer(40)) // 2926813379532
+  assert(growPolymer(40) == 2926813379532) // 2926813379532
 }

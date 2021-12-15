@@ -63,11 +63,11 @@ func solveNaïvely(days: Int) -> Int {
 }
 
 public func partOne() {
-  print(solveWithArrayIndexMath(days: 80)) // 362639
+  assert(solveWithArrayIndexMath(days: 80) == 362639) // 362639
 }
 
 public func partTwo() {
-  print(solveWithArrayIndexMath(days: 256)) // 1639854996917
+  assert(solveWithArrayIndexMath(days: 256) == 1639854996917) // 1639854996917
 }
 
 public func partOneTimeTests() {

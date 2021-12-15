@@ -12,10 +12,10 @@ extension Array where Element: RandomAccessCollection, Element.Indices == Range<
     public mutating func next() -> Position? {
       guard rowIndices.contains(nextPosition.row) && columnIndices.contains(nextPosition.col) else { return nil }
       let currentPosition = nextPosition
-      nextPosition.row += 1
-      if !rowIndices.contains(nextPosition.row) {
-        nextPosition.row = 0
-        nextPosition.col += 1
+      nextPosition.col += 1
+      if !columnIndices.contains(nextPosition.col) {
+        nextPosition.col = 0
+        nextPosition.row += 1
       }
       return currentPosition
     }

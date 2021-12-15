@@ -76,10 +76,10 @@ func scores(for keyPath: KeyPath<ParseResult, Bool>) -> [Int] {
 
 public func partOne() {
   let score = scores(for: \.isCorrupted).reduce(0, +)
-  print(score) // 374061
+  assert(score == 374061) // 374061
 }
 
 public func partTwo() {
   let scores = scores(for: \.isIncomplete).sorted()
-  print(scores[scores.count / 2]) // 2116639949
+  assert(scores[scores.count / 2] == 2116639949) // 2116639949
 }

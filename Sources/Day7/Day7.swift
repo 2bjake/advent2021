@@ -12,10 +12,10 @@ func bestCost(_ costForDistance: @escaping (Int) -> Int) -> Int {
 }
 
 public func partOne() { // 352331
-  print(bestCost { $0 })
+  assert(bestCost { $0 } == 352331)
 }
 
 public func partTwo() { // 99266250
   let allCosts = (1...positionRange.count).reductions(0, +)
-  print(bestCost { allCosts[$0] })
+  assert(bestCost { allCosts[$0] } == 99266250)
 }
