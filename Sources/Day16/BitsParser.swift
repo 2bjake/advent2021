@@ -1,3 +1,8 @@
+private enum Bit: Character {
+  case zero = "0"
+  case one = "1"
+}
+
 private func hexToBits(_ hexChar: Character) -> [Bit] {
   let hex = Int(hexChar, radix: 16)!
   let binaryStr = String(hex, radix: 2)
@@ -11,17 +16,8 @@ private extension Int {
   }
 }
 
-private enum Bit: Character {
-  case zero = "0"
-  case one = "1"
-}
-
 struct BitsParser {
   private var bits: [Bit]
-
-  private init(_ bits: [Bit]) {
-    self.bits = bits.reversed()
-  }
 
   init(_ source: String) {
     let b: [[Bit]] = source.map(hexToBits)
@@ -39,15 +35,21 @@ struct BitsParser {
     let builder = OperatorPacket.Builder(version: version, subPackets: parseSubPackets())
 
     switch type {
-      case 0: return builder.sum
-      case 1: return builder.product
-      case 2: return builder.min
-      case 3: return builder.max
-      case 5: return builder.greaterThan
-      case 6: return builder.lessThan
-      case 7: return builder.equal
+      case 0: return builder.sum()
+      case 1: return builder.product()
+      case 2: return builder.min()
+      case 3: return builder.max()
+      case 5: return builder.greaterThan()
+      case 6: return builder.lessThan()
+      case 7: return builder.equal()
       default: fatalError()
     }
+  }
+}
+
+extension BitsParser {
+  private init(_ bits: [Bit]) {
+    self.bits = bits.reversed()
   }
 
   private mutating func consume(_ k: Int) -> [Bit] {

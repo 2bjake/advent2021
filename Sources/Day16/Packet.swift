@@ -29,17 +29,19 @@ extension OperatorPacket {
       self.subPackets = subPackets
     }
     
-    func with(_ operation: @escaping ([Int]) -> Int) -> OperatorPacket {
-      OperatorPacket(version: version, subPackets: subPackets, operation: operation)
+    private func with(operation: @escaping ([Int]) -> Int) -> OperatorPacket {
+      .init(version: version, subPackets: subPackets, operation: operation)
     }
     
-    var sum: Packet { self.with { $0.reduce(0, +) } }
-    var product: Packet { self.with { $0.reduce(1, *) } }
-    var min: Packet { self.with { $0.min()! } }
-    var max: Packet { self.with { $0.max()! } }
-    var greaterThan: Packet { self.with { $0[0] > $0[1] ? 1 : 0 } }
-    var lessThan: Packet { self.with { $0[0] < $0[1] ? 1 : 0 } }
-    var equal: Packet { self.with { $0[0] == $0[1] ? 1 : 0 } }
+    func sum() -> Packet { self.with { $0.reduce(0, +) } }
+    func product() -> Packet { self.with { $0.reduce(1, *) } }
+    func min() -> Packet { self.with { $0.min()! } }
+    func max() -> Packet { self.with { $0.max()! } }
+
+    private func comparison(_ compare: @escaping (Int, Int) -> Bool) -> Packet { self.with { compare($0[0], $0[1]) ? 1 : 0 } }
+    func greaterThan() -> Packet { comparison(>) }
+    func lessThan() -> Packet { comparison(<) }
+    func equal() -> Packet { comparison(==) }
   }
 }
 
