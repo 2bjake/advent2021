@@ -38,15 +38,9 @@ extension OperatorPacket {
     func min() -> Packet { self.with { $0.min()! } }
     func max() -> Packet { self.with { $0.max()! } }
 
-    private func comparison(_ compare: @escaping (Int, Int) -> Bool) -> Packet { self.with { compare($0[0], $0[1]) ? 1 : 0 } }
-    func greaterThan() -> Packet { comparison(>) }
-    func lessThan() -> Packet { comparison(<) }
-    func equal() -> Packet { comparison(==) }
-  }
-}
-
-extension OperatorPacket {
-  init (_ builder: Builder, operation: @escaping ([Int]) -> Int) {
-    self.init(version: builder.version, subPackets: builder.subPackets, operation: operation)
+    private func compare(_ comparison: @escaping (Int, Int) -> Bool) -> Packet { self.with { comparison($0[0], $0[1]) ? 1 : 0 } }
+    func greaterThan() -> Packet { self.compare(>) }
+    func lessThan() -> Packet { self.compare(<) }
+    func equal() -> Packet { self.compare(==) }
   }
 }
