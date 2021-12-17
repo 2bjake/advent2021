@@ -28,7 +28,7 @@ struct BitsParser {
       return parseLiteral(version: version)
     }
 
-    let builder = OperatorPacketBuilder(version: version, subPackets: parseSubPackets())
+    let builder = OperatorPacket.Builder(version: version, subPackets: parseSubPackets())
 
     switch type {
       case 0: return builder.sum
