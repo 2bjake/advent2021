@@ -1,33 +1,13 @@
 import Extensions
 
-enum Bit: Character {
-  case zero = "0"
-  case one = "1"
-}
-
-extension Int {
-  init(_ source: [Bit]) {
-    self.init(String(source.map(\.rawValue)), radix: 2)!
-  }
-}
-
-func hexToBits(_ hexChar: Character) -> [Bit] {
-  let hex = Int(hexChar, radix: 16)!
-  let binaryStr = String(hex, radix: 2)
-  let unpadded = binaryStr.compactMap(Bit.init)
-  return repeatElement(.zero, count: 4 - unpadded.count) + unpadded
-}
-
 func versionSumFor(_ str: String) -> Int {
   var parser = BitsParser(str)
-  let packet = parser.parsePacket()
-  return packet.versionSum
+  return parser.parsePacket().versionSum
 }
 
 func value(_ str: String) -> Int {
   var parser = BitsParser(str)
-  let packet = parser.parsePacket()
-  return packet.value
+  return parser.parsePacket().value
 }
 
 public func partOne() {

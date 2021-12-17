@@ -1,23 +1,31 @@
-struct BitsParser {
-  var bits: [Bit]
+private func hexToBits(_ hexChar: Character) -> [Bit] {
+  let hex = Int(hexChar, radix: 16)!
+  let binaryStr = String(hex, radix: 2)
+  let unpadded = binaryStr.compactMap(Bit.init)
+  return repeatElement(.zero, count: 4 - unpadded.count) + unpadded
+}
 
-  init(_ bits: [Bit]) {
-    self.bits = bits
+private extension Int {
+  init(_ source: [Bit]) {
+    self.init(String(source.map(\.rawValue)), radix: 2)!
+  }
+}
+
+private enum Bit: Character {
+  case zero = "0"
+  case one = "1"
+}
+
+struct BitsParser {
+  private var bits: [Bit]
+
+  private init(_ bits: [Bit]) {
+    self.bits = bits.reversed()
   }
 
   init(_ source: String) {
     let b: [[Bit]] = source.map(hexToBits)
     bits = Array(b.joined().reversed())
-  }
-
-  func printBits() {
-    print(String(bits.reversed().map(\.rawValue)))
-  }
-
-  mutating func consume(_ k: Int) -> [Bit] {
-    let suffix = bits.suffix(k)
-    bits.removeLast(k)
-    return suffix.reversed()
   }
 
   mutating func parsePacket() -> Packet {
@@ -42,7 +50,13 @@ struct BitsParser {
     }
   }
 
-  mutating func parseLiteral(version: Int) -> Packet {
+  private mutating func consume(_ k: Int) -> [Bit] {
+    let suffix = bits.suffix(k)
+    bits.removeLast(k)
+    return suffix.reversed()
+  }
+
+  private mutating func parseLiteral(version: Int) -> Packet {
     var shouldContinue: Bool
     var valueBits = [Bit]()
     repeat {
@@ -54,7 +68,7 @@ struct BitsParser {
     return LiteralPacket(version: version, value: Int(valueBits))
   }
 
-  mutating func parseSubPackets() -> [Packet] {
+  private mutating func parseSubPackets() -> [Packet] {
     if consume(1).only == .zero {
       return parseTypeZeroSubPackets()
     } else {
@@ -62,17 +76,17 @@ struct BitsParser {
     }
   }
 
-  mutating func parseTypeZeroSubPackets() -> [Packet] {
+  private mutating func parseTypeZeroSubPackets() -> [Packet] {
     var subPackets = [Packet]()
     let subBitCount = Int(consume(15))
-    var subParser = BitsParser(consume(subBitCount).reversed()) // TODO: this is a little weird and error prone...
+    var subParser = BitsParser(consume(subBitCount))
     while !subParser.bits.isEmpty {
       subPackets.append(subParser.parsePacket())
     }
     return subPackets
   }
 
-  mutating func parseTypeOneSubPackets() -> [Packet] {
+  private mutating func parseTypeOneSubPackets() -> [Packet] {
     var subPackets = [Packet]()
     let subPacketCount = Int(consume(11))
     for _ in 0..<subPacketCount {
