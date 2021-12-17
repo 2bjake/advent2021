@@ -1,11 +1,6 @@
-import Day16
+import Day17
 
-if #available(macOS 10.15.0, *) {
-  partOne()
-} else {
-  // Fallback on earlier versions
-}
-partTwo()
+partOneAndTwo()
 
 //runAll()
 

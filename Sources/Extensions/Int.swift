@@ -25,3 +25,9 @@ extension Int {
     self -= self.compare(with: toward)
   }
 }
+
+extension Int {
+  public func squareRoot() -> Double {
+    Double(self).squareRoot()
+  }
+}
