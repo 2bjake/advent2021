@@ -18,32 +18,24 @@ struct OperatorPacket: Packet {
   var value: Int { operation(subPackets.map(\.value)) }
 }
 
-extension OperatorPacket {
-  static func sum(version: Int, subPackets: [Packet]) -> Packet {
-    OperatorPacket(version: version, subPackets: subPackets) { $0.reduce(0, +) }
+struct OperatorPacketBuilder {
+  private var version: Int
+  private var subPackets: [Packet]
+
+  init(version: Int, subPackets: [Packet]) {
+    self.version = version
+    self.subPackets = subPackets
   }
 
-  static func product(version: Int, subPackets: [Packet]) -> Packet {
-    OperatorPacket(version: version, subPackets: subPackets) { $0.reduce(1, *) }
+  func withOperation(_ operation: @escaping ([Int]) -> Int) -> OperatorPacket {
+    OperatorPacket(version: version, subPackets: subPackets, operation: operation)
   }
 
-  static func min(version: Int, subPackets: [Packet]) -> Packet {
-    OperatorPacket(version: version, subPackets: subPackets) { $0.min()! }
-  }
-
-  static func max(version: Int, subPackets: [Packet]) -> Packet {
-    OperatorPacket(version: version, subPackets: subPackets) { $0.max()! }
-  }
-
-  static func greaterThan(version: Int, subPackets: [Packet]) -> Packet {
-    OperatorPacket(version: version, subPackets: subPackets) { $0[0] > $0[1] ? 1 : 0 }
-  }
-
-  static func lessThan(version: Int, subPackets: [Packet]) -> Packet {
-    OperatorPacket(version: version, subPackets: subPackets) { $0[0] < $0[1] ? 1 : 0 }
-  }
-
-  static func equal(version: Int, subPackets: [Packet]) -> Packet {
-    OperatorPacket(version: version, subPackets: subPackets) { $0[0] == $0[1] ? 1 : 0 }
-  }
+  var sum: Packet { withOperation{ $0.reduce(0, +) } }
+  var product: Packet { withOperation { $0.reduce(1, *) } }
+  var min: Packet { withOperation { $0.min()! } }
+  var max: Packet { withOperation { $0.max()! } }
+  var greaterThan: Packet { withOperation { $0[0] > $0[1] ? 1 : 0 } }
+  var lessThan: Packet { withOperation { $0[0] < $0[1] ? 1 : 0 } }
+  var equal: Packet { withOperation { $0[0] == $0[1] ? 1 : 0 } }
 }

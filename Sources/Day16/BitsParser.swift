@@ -24,15 +24,20 @@ struct BitsParser {
     let version = Int(consume(3))
     let type = Int(consume(3))
 
+    if type == 4 {
+      return parseLiteral(version: version)
+    }
+
+    let builder = OperatorPacketBuilder(version: version, subPackets: parseSubPackets())
+
     switch type {
-      case 0: return OperatorPacket.sum(version: version, subPackets: parseSubPackets())
-      case 1: return OperatorPacket.product(version: version, subPackets: parseSubPackets())
-      case 2: return OperatorPacket.min(version: version, subPackets: parseSubPackets())
-      case 3: return OperatorPacket.max(version: version, subPackets: parseSubPackets())
-      case 4: return parseLiteral(version: version)
-      case 5: return OperatorPacket.greaterThan(version: version, subPackets: parseSubPackets())
-      case 6: return OperatorPacket.lessThan(version: version, subPackets: parseSubPackets())
-      case 7: return OperatorPacket.equal(version: version, subPackets: parseSubPackets())
+      case 0: return builder.sum
+      case 1: return builder.product
+      case 2: return builder.min
+      case 3: return builder.max
+      case 5: return builder.greaterThan
+      case 6: return builder.lessThan
+      case 7: return builder.equal
       default: fatalError()
     }
   }

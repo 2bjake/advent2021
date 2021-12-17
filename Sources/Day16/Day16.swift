@@ -48,6 +48,5 @@ public func partTwo() {
   assert(value("9C005AC2F8F0") == 0)
   assert(value("9C0141080250320F1802104A08") == 1)
   assert(value(input) == 1725277876501)
+  print(value(input))
 }
-
-
