@@ -1,6 +1,7 @@
-import Day17
+import Day18
 
-partOneAndTwo()
+partOne()
+partTwo()
 
 //runAll()
 
