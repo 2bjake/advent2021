@@ -102,9 +102,6 @@ extension Pair {
   func reduce() {
     var isReduced = false
     while !isReduced {
-      if "\(self)".range(of: "20") != nil {
-        print(self)
-      }
       let didExplode = checkForExplosions()
 
       var didSplit = false
