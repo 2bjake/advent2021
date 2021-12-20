@@ -1,22 +1,21 @@
-class Number: CustomStringConvertible {
+
+class Node {
   var value: Int
+  var previous: Node?
+  var next: Node?
 
-  var description: String { "\(value)"}
-
-  init( _ value: Int) {
+  init(value: Int, previous: Node? = nil, next: Node? = nil) {
     self.value = value
+    self.previous = previous
+    self.next = next
   }
 }
 
 indirect enum Element {
-  case number(Number)
+  case number(Node)
   case pair(Pair)
 
-  init(_ value: Int) {
-    self = .number(Number(value))
-  }
-
-  var number: Number? {
+  var number: Node? {
     guard case .number(let number) = self else { return nil }
     return number
   }
@@ -25,18 +24,58 @@ indirect enum Element {
     guard case .pair(let pair) = self else { return nil }
     return pair
   }
+
+  var leftMostNumber: Node {
+    switch self {
+      case .number(let node): return node
+      case .pair(let pair): return pair.leftMostNumber
+    }
+  }
+
+  var rightMostNumber: Node {
+    switch self {
+      case .number(let node): return node
+      case .pair(let pair): return pair.rightMostNumber
+    }
+  }
 }
 
-struct Pair {
+class Pair {
   var left: Element
   var right: Element
+
+  // TODO: this doesn't hook up the nodes at all
+  init(left: Element, right: Element) {
+    self.left = left
+    self.right = right
+  }
 }
-
-
 
 extension Pair {
   static func +(lhs:Pair, rhs: Pair) -> Pair {
-    Pair(left: .pair(lhs), right: .pair(rhs))
+    let endOfLeft = lhs.rightMostNumber
+    let beginningOfRight = rhs.leftMostNumber
+
+    endOfLeft.next = beginningOfRight
+    beginningOfRight.previous = endOfLeft
+
+    return Pair(left: .pair(lhs), right: .pair(rhs))
+  }
+
+  var leftMostNumber: Node {
+    var currentElement = self.left
+    while case .pair(let pair) = currentElement {
+      currentElement = pair.left
+    }
+    return currentElement.number!
+  }
+
+  var rightMostNumber: Node {
+    var currentElement = self.right
+    while case .pair(let pair) = currentElement {
+      currentElement = pair.right
+    }
+    return currentElement.number!
   }
 
   var leftPair: Pair? {
@@ -44,7 +83,7 @@ extension Pair {
     return pair
   }
 
-  var leftNumber: Number? {
+  var leftNumber: Node? {
     guard case .number(let number) = left else { return nil }
     return number
   }
@@ -54,21 +93,13 @@ extension Pair {
     return pair
   }
 
-  var rightNumber: Number? {
+  var rightNumber: Node? {
     guard case .number(let number) = right else { return nil }
     return number
   }
 
   var isBase: Bool { leftNumber != nil && rightNumber != nil }
 }
-
-//func inOrderKeyPaths(for pair: Pair, path: KeyPath<Pair, Pair>) -> [KeyPath<Pair, Element>] {
-//  var result = [KeyPath<Pair, Element>]()
-//  if case .pair(let leftPair) = pair.left {
-//    result.append(contentsOf: inOrderKeyPaths(for: leftPair, path: path.appending(path: \.leftPair))
-//  }
-//  return result
-//}
 
 func numberPrefix(_ source: inout Substring) -> Int? {
   let digitPrefix = source.prefix { ("0"..."9").contains($0) }
@@ -78,28 +109,35 @@ func numberPrefix(_ source: inout Substring) -> Int? {
 }
 
 extension Element {
-  static func build(_ source: inout Substring) -> Element {
+  static func build(_ source: inout Substring, previousNode: Node?) -> Element {
     if source.first == "," { source.removeFirst() }
 
     if let number = numberPrefix(&source) {
-      return Element(number)
+      let node = Node(value: number, previous: previousNode)
+      previousNode?.next = node
+      return .number(node)
     } else {
-      return .pair(.build(&source))
+      return .pair(.build(&source, previousNode: previousNode))
     }
   }
 }
 
 extension Pair {
-  init(_ source: Substring) {
+  convenience init(_ source: Substring) {
     var source = source
-    self = .build(&source)
+    let pair = Self.build(&source, previousNode: nil)
+    self.init(left: pair.left, right: pair.right)
   }
 
-  static func build(_ source: inout Substring) -> Pair {
+  static func build(_ source: inout Substring, previousNode: Node?) -> Pair {
     guard source.first == "[" else { fatalError() }
     source.removeFirst()
-    let left = Element.build(&source)
-    let right = Element.build(&source)
+    let left = Element.build(&source, previousNode: previousNode)
+    previousNode?.next = left.leftMostNumber
+
+    let right = Element.build(&source, previousNode: left.rightMostNumber)
+    left.rightMostNumber.next = right.leftMostNumber
+
     guard source.first == "]" else { fatalError() }
     source.removeFirst()
     return Pair(left: left, right: right)
@@ -119,4 +157,8 @@ extension Pair: CustomStringConvertible {
   var description: String {
     "[\(left),\(right)]"
   }
+}
+
+extension Node: CustomStringConvertible {
+  var description: String { "\(value)" }
 }
