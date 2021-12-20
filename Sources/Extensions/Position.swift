@@ -12,6 +12,10 @@ public func +(position: Position, change: (row: Int, col: Int)) -> Position {
   Position(position.row + change.row, position.col + change.col)
 }
 
+public func -(position: Position, change: (row: Int, col: Int)) -> Position {
+  Position(position.row - change.row, position.col - change.col)
+}
+
 extension Position {
   public func next(toward: Position) -> Position? {
     var next = self
