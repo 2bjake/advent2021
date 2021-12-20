@@ -1,125 +1,26 @@
+import Foundation
 
-class Node {
-  var value: Int
-  var previous: Node?
-  var next: Node?
-
-  init(value: Int, previous: Node? = nil, next: Node? = nil) {
-    self.value = value
-    self.previous = previous
-    self.next = next
-  }
-}
-
-indirect enum Element {
-  case number(Node)
-  case pair(Pair)
-
-  var number: Node? {
-    guard case .number(let number) = self else { return nil }
-    return number
-  }
-
-  var pair: Pair? {
-    guard case .pair(let pair) = self else { return nil }
-    return pair
-  }
-
-  var leftMostNumber: Node {
-    switch self {
-      case .number(let node): return node
-      case .pair(let pair): return pair.leftMostNumber
-    }
-  }
-
-  var rightMostNumber: Node {
-    switch self {
-      case .number(let node): return node
-      case .pair(let pair): return pair.rightMostNumber
-    }
-  }
-}
-
-class Pair {
+class Pair: Element {
   var left: Element
   var right: Element
 
-  // TODO: this doesn't hook up the nodes at all
+  var leftMostNode: Node { left.leftMostNode }
+  var rightMostNode: Node { right.rightMostNode }
+  var magnitude: Int { left.magnitude * 3 + right.magnitude * 2}
+
   init(left: Element, right: Element) {
+    let endOfLeft = left.rightMostNode
+    let beginningOfRight = right.leftMostNode
+
+    endOfLeft.next = beginningOfRight
+    beginningOfRight.previous = endOfLeft
     self.left = left
     self.right = right
   }
 }
 
 extension Pair {
-  static func +(lhs:Pair, rhs: Pair) -> Pair {
-    let endOfLeft = lhs.rightMostNumber
-    let beginningOfRight = rhs.leftMostNumber
 
-    endOfLeft.next = beginningOfRight
-    beginningOfRight.previous = endOfLeft
-
-    return Pair(left: .pair(lhs), right: .pair(rhs))
-  }
-
-  var leftMostNumber: Node {
-    var currentElement = self.left
-    while case .pair(let pair) = currentElement {
-      currentElement = pair.left
-    }
-    return currentElement.number!
-  }
-
-  var rightMostNumber: Node {
-    var currentElement = self.right
-    while case .pair(let pair) = currentElement {
-      currentElement = pair.right
-    }
-    return currentElement.number!
-  }
-
-  var leftPair: Pair? {
-    guard case .pair(let pair) = left else { return nil }
-    return pair
-  }
-
-  var leftNumber: Node? {
-    guard case .number(let number) = left else { return nil }
-    return number
-  }
-
-  var rightPair: Pair? {
-    guard case .pair(let pair) = right else { return nil }
-    return pair
-  }
-
-  var rightNumber: Node? {
-    guard case .number(let number) = right else { return nil }
-    return number
-  }
-
-  var isBase: Bool { leftNumber != nil && rightNumber != nil }
-}
-
-func numberPrefix(_ source: inout Substring) -> Int? {
-  let digitPrefix = source.prefix { ("0"..."9").contains($0) }
-  guard !digitPrefix.isEmpty else { return nil }
-  source = source.dropFirst(digitPrefix.count)
-  return Int(digitPrefix)
-}
-
-extension Element {
-  static func build(_ source: inout Substring, previousNode: Node?) -> Element {
-    if source.first == "," { source.removeFirst() }
-
-    if let number = numberPrefix(&source) {
-      let node = Node(value: number, previous: previousNode)
-      previousNode?.next = node
-      return .number(node)
-    } else {
-      return .pair(.build(&source, previousNode: previousNode))
-    }
-  }
 }
 
 extension Pair {
@@ -132,11 +33,11 @@ extension Pair {
   static func build(_ source: inout Substring, previousNode: Node?) -> Pair {
     guard source.first == "[" else { fatalError() }
     source.removeFirst()
-    let left = Element.build(&source, previousNode: previousNode)
-    previousNode?.next = left.leftMostNumber
+    let left = buildElement(&source, previousNode: previousNode)
+    previousNode?.next = left.leftMostNode
 
-    let right = Element.build(&source, previousNode: left.rightMostNumber)
-    left.rightMostNumber.next = right.leftMostNumber
+    let right = buildElement(&source, previousNode: left.rightMostNode)
+    left.rightMostNode.next = right.leftMostNode
 
     guard source.first == "]" else { fatalError() }
     source.removeFirst()
@@ -144,11 +45,73 @@ extension Pair {
   }
 }
 
-extension Element: CustomStringConvertible {
-  var description: String {
-    switch self {
-      case .number(let number): return "\(number.value)"
-      case .pair(let pair): return "\(pair)"
+extension Pair {
+  func checkForExplosions(depth: Int = 1) -> Bool {
+    if let leftPair = left as? Pair {
+      if depth == 4 {
+        left = leftPair.explode()
+        return true
+      } else if leftPair.checkForExplosions(depth: depth + 1) {
+        return true
+      }
+    }
+
+    if let rightPair = right as? Pair {
+      if depth == 4 {
+        right = rightPair.explode()
+        return true
+      } else if rightPair.checkForExplosions(depth: depth + 1) {
+        return true
+      }
+    }
+    return false
+  }
+
+  func explode() -> Node {
+    guard let leftNode = left as? Node, let rightNode = right as? Node else { fatalError() }
+    let zero = Node(value: 0, previous: leftNode.previous, next: rightNode.next)
+
+    if let previous = leftNode.previous {
+      previous.value += leftNode.value
+      previous.next = zero
+    }
+
+    if let next = rightNode.next {
+      next.value += rightNode.value
+      next.previous = zero
+    }
+    return zero
+  }
+
+  func checkForSplit() -> Bool {
+    if let leftNode = left as? Node, leftNode.value >= 10 {
+      left = leftNode.split()
+      return true
+    } else if let leftPair = left as? Pair, leftPair.checkForSplit() {
+      return true
+    } else if let rightPair = right as? Pair, rightPair.checkForSplit() {
+      return true
+    } else if let rightNode = right as? Node, rightNode.value >= 10 {
+      right = rightNode.split()
+      return true
+    } else {
+      return false
+    }
+  }
+
+  func reduce() {
+    var isReduced = false
+    while !isReduced {
+      if "\(self)".range(of: "20") != nil {
+        print(self)
+      }
+      let didExplode = checkForExplosions()
+
+      var didSplit = false
+      if !didExplode {
+        didSplit = checkForSplit()
+      }
+      isReduced = !didExplode && !didSplit
     }
   }
 }
@@ -157,8 +120,4 @@ extension Pair: CustomStringConvertible {
   var description: String {
     "[\(left),\(right)]"
   }
-}
-
-extension Node: CustomStringConvertible {
-  var description: String { "\(value)" }
 }
