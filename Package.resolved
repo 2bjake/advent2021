@@ -32,7 +32,7 @@
         "package": "SwiftPriorityQueue",
         "repositoryURL": "https://github.com/davecom/SwiftPriorityQueue.git",
         "state": {
-          "branch": "master",
+          "branch": null,
           "revision": "7b4aa89d9740779f6123929c3e9e7e6b86b83671",
           "version": null
         }

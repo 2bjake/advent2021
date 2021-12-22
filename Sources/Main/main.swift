@@ -1,10 +1,11 @@
-import Day21
+import Day22
+import Extensions
 
 partOne()
 partTwo()
 
 //runAll()
 
-//printMillisElapsed("partOne", for: partOne)
+//printMillisElapsed("partTwo", for: partTwo)
 //printAvgMillisElapsed("partTwo", runTimes: 1000, for: partTwo)
 
