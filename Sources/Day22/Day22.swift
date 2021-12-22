@@ -1,8 +1,8 @@
 import Algorithms
 import Extensions
 
-extension Range3D {
-  func clamped(to clampRange: ClosedRange<Int>) -> Range3D? {
+extension Cuboid {
+  func clamped(to clampRange: ClosedRange<Int>) -> Cuboid? {
     guard xRange.overlaps(clampRange) && yRange.overlaps(clampRange) && zRange.overlaps(clampRange) else { return nil }
 
     var clamped = self
@@ -19,7 +19,7 @@ struct Point3D: Hashable {
   var z: Int
 }
 
-extension Range3D {
+extension Cuboid {
   var allPoints: [Point3D] {
     var result = [Point3D]()
     for x in xRange {
@@ -34,28 +34,24 @@ extension Range3D {
 }
 
 public func partOne() {
-  let clampRange = -50...50
-  let ranges = input.map(Range3D.init).compactMap { $0.clamped(to: clampRange) }
-
-  let cubeStates: [Point3D: Flip] = ranges.reduce(into: [:]) { result, range in
-    for point in range.allPoints {
-      result[point] = range.flip
-    }
-  }
-  print(cubeStates.values.count { $0 == .on })
+//  let clampRange = -50...50
+//  let ranges = input.map(Range3D.init).compactMap { $0.clamped(to: clampRange) }
+//
+//  let cubeStates: [Point3D: Flip] = ranges.reduce(into: [:]) { result, range in
+//    for point in range.allPoints {
+//      result[point] = range.flip
+//    }
+//  }
+//  print(cubeStates.values.count { $0 == .on }) // 647076
 }
 
 public func partTwo() {
   //let ranges = input.map(Range3D.init)
 
-  //var onRanges = [Range3D]()
+  let largeCube = Cuboid(xRange: 0...9, yRange: 0...5, zRange: 0...7)
+  let smallCube = Cuboid(xRange: 2...3, yRange: 1...4, zRange: 5...6)
 
-  let myRange = 0...2000
-
-  let ranges = myRange.split(separator: 1000)
-  for range in ranges {
-    print("\(range.startIndex)...\(range.endIndex)")
-  }
-
+  let shape = largeCube.subtracting(smallCube)
+  print(shape)
 
 }

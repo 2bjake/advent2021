@@ -32,13 +32,6 @@ extension Point {
   }
 }
 
-func longestOverlap(_ a: Scanner, _ b: Scanner) -> Int {
-  var result = 0
-
-
-  return result
-}
-
 public func partOne() {
   let scanners = sampleInput.components(separatedBy: "\n\n").map {
     $0.split(separator: "\n").dropFirst().map(Point.init)
