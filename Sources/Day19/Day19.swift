@@ -71,40 +71,70 @@ struct Scanner {
     self.id = id
     self.beacons = Set(beacons)
   }
-}
 
-extension Scanner {
-  func beacons(rotation: Int) -> Set<Point> {
-    Set(beacons.map { $0.rotated(rotation) })
+  func tranformed(by transform: Transform) -> Scanner {
+    var result = self
+    result.beacons = transform.apply(to: result.beacons)
+    return result
   }
 }
 
 struct Transform {
   var rotationNum: Int
   var translation: (x: Int, y: Int, z: Int)
+
+  init(rotationNum: Int, translating from: Point, to: Point) {
+    self.rotationNum = rotationNum
+    self.translation = to - from.rotated(rotationNum)
+  }
+
+  func apply(to points: Set<Point>) -> Set<Point> {
+    Set(points.map { $0.rotated(rotationNum) + translation })
+  }
 }
 
 func overlapTransform(_ a: Scanner, _ b: Scanner) -> Transform? {
-  for rotation in 0..<24 {
-    let bBeacons = b.beacons(rotation: rotation)
-    for (bBeacon, aBeacon) in product(bBeacons, a.beacons) {
-      let difference = aBeacon - bBeacon
-      let bNormalizedBeacons = Set(bBeacons.map { $0 + difference })
+  for num in 0..<24 {
+    for (aBeacon, bBeacon) in product(a.beacons, b.beacons) {
+      let transform = Transform(rotationNum: num, translating: bBeacon, to: aBeacon)
+      let bNormalizedBeacons = transform.apply(to: b.beacons)
       let count = bNormalizedBeacons.intersection(a.beacons).count
       if count >= 12 {
-        return Transform(rotationNum: rotation, translation: difference)
+        return transform
       }
     }
   }
   return nil
 }
 
-public func partOne() {
-  let scanners = sampleInput.components(separatedBy: "\n\n").map {
-    $0.split(separator: "\n").dropFirst().map(Point.init)
-  }.enumerated().map(Scanner.init)
+func identifyScanner(from unknownScanners: inout [Scanner], with knownScanners: inout [Scanner]) {
+  for i in unknownScanners.indices {
+    let unknownScanner = unknownScanners[i]
+    for knownScanner in knownScanners {
+      if let transform = overlapTransform(knownScanner, unknownScanner) {
+        unknownScanners.remove(at: i)
+        knownScanners.append(unknownScanner.tranformed(by: transform))
+        return
+      }
+    }
+  }
+}
 
-  print(overlapTransform(scanners[0], scanners[1]))
+public func partOne() {
+  var unknownScanners: [Scanner] = input.components(separatedBy: "\n\n").map {
+    $0.split(separator: "\n").dropFirst().map(Point.init)
+  }.enumerated().map(Scanner.init).reversed()
+
+
+  var knownScanners = [unknownScanners.removeLast()]
+  while !unknownScanners.isEmpty {
+    identifyScanner(from: &unknownScanners, with: &knownScanners)
+  }
+
+  let beaconCount = knownScanners.reduce(into: Set<Point>()) { result, scanner in
+    result.formUnion(scanner.beacons)
+  }.count
+  print(beaconCount)
 }
 
 public func partTwo() {
