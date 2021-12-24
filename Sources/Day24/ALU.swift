@@ -1,7 +1,5 @@
 import Extensions
 
-
-
 struct ALU {
   private var instructions: [Instruction]
 
@@ -66,4 +64,14 @@ struct ALU {
     }
     return variables
   }
+}
+
+func run(_ alu: inout ALU, with value: UInt64) -> Int {
+  run(&alu, with: Array(String(value)))
+}
+
+func run(_ alu: inout ALU, with value: [Character]) -> Int {
+  var valueSlice = ArraySlice(value)
+  let vars = alu.run { valueSlice.removeFirst() }
+  return vars[.z]!
 }
