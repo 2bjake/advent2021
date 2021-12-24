@@ -1,69 +1,21 @@
 import Algorithms
 
-func printVars(_ vars: [Identifier: Int]) {
-    print("[w: \(vars[.w]!), x: \(vars[.x]!), y: \(vars[.y]!), z: \(vars[.z]!) ]")
-//  print("w: \(vars[.w]!)")
-//  print("x: \(vars[.x]!)")
-//  print("y: \(vars[.y]!)")
-//  print("z: \(vars[.z]!)")
-}
-
-func printInstruction(_ i: Instruction) {
-  print("\(i.op.rawValue) \(i.dest.rawValue) \(i.arg)")
-}
-
-//public func partOne () {
-//  let sections = input.components(separatedBy: "inp w").map { $0.split(separator: "\n") }.dropFirst()
-//  let first = sections.first!
-//  for i in first.indices {
-//    let line = first[i]
-//    if !sections.allSatisfy({ $0[i] == line }) {
-//      let instructions = sections.map { $0[i] }.map(buildInstruction)
-//      print("line \(i) DOES NOT match")
-//      if i == 3 || i == 4 || i == 14 {
-//        let args: [Int] = instructions.compactMap {
-//          if case .value(let value) = $0.arg {
-//            return value
-//          }
-//          return nil
-//        }
-//        print(args)
-//      }
-//    }
-//  }
+//func printVars(_ vars: [Identifier: Int]) {
+//  print("[w: \(vars[.w]!), x: \(vars[.x]!), y: \(vars[.y]!), z: \(vars[.z]!) ]")
 //}
-
-//public func partOne () {
-//  let sections = input.components(separatedBy: "inp w").map { $0.split(separator: "\n") }.dropFirst()
-//  let first = sections.first!
-//  for i in first.indices {
-//    let line = first[i]
-//    if sections.allSatisfy({ $0[i] == line }) {
-//      print("line \(i) matches")
-//    } else {
-//      let instructions = sections.map { $0[i] }.map(buildInstruction)
-//      print("line \(i) DOES NOT match")
-//      if i == 3 {
-//        print(instructions.allSatisfy { $0.op == .div && $0.dest == .z && $0.arg.isValue })
-//      } else if i == 4 {
-//        //add x {num2}
-//        print(instructions.allSatisfy { $0.op == .add && $0.dest == .x && $0.arg.isValue })
-//      } else if i == 14 {
-//        //add y {num3}
-//        print(instructions.allSatisfy { $0.op == .add && $0.dest == .y && $0.arg.isValue })
-//      }
-//    }
-//  }
+//
+//func printInstruction(_ i: Instruction) {
+//  print("\(i.op.rawValue) \(i.dest.rawValue) \(i.arg)")
 //}
-
-func inspect(instruction: Instruction, variables: [Identifier: Int]) {
-  if instruction.op == .inp {
-    print("#############")
-  }
-  printInstruction(instruction)
-  printVars(variables)
-  print()
-}
+//
+//func inspect(instruction: Instruction, variables: [Identifier: Int]) {
+//  if instruction.op == .inp {
+//    print("#############")
+//  }
+//  printInstruction(instruction)
+//  printVars(variables)
+//  print()
+//}
 
 func run(_ alu: inout ALU, with value: UInt64) -> Int {
   run(&alu, with: Array(String(value)))
@@ -79,85 +31,165 @@ func run(with value: UInt64) -> Int {
   run(with: Array(String(value)))
 }
 
-//func process(input: Int, z: Int, val1: Int, val2: Int, val3: Int) -> Int {
-//  var x = z % 26 + val2
-//  var z = z
+var cache: [[Int]: Int] = [:]
+
+//func findLongestCacheHit(_ value: [Int]) -> [Int] {
+//  var prefixLength = 1
+//  while prefixLength <= value.count && cache[Array(value.prefix(prefixLength))] != nil {
+//    prefixLength += 1
+//  }
 //
-//  z /= val1
+//  guard prefixLength > 0 else { return [] }
 //
-//  x = x == input ? 0 : 1
-//
-//  let temp1 = 25 * x + 1
-//  z *= temp1
-//
-//  let temp2 = (input + val3) * x
-//  z += temp2
-//
-//  return z
+//  return Array(value.prefix(prefixLength - 1))
 //}
 
-func process(input: Int, previous: Int, shouldDivide: Bool, val2: Int, val3: Int) -> Int {
-  var next = previous
-
-  if shouldDivide {
-    next /= 26
+func findLongestCacheHit(_ value: [Int]) -> [Int] {
+  var prefix = ArraySlice(value)
+  while !prefix.isEmpty {
+    let arr = Array(prefix)
+    if cache[Array(prefix)] != nil { return arr }
+    prefix = prefix.dropLast()
   }
-
-  if previous % 26 != input - val2 {
-    next *= 26
-    next += input + val3
-  }
-  return next
+  return []
 }
 
 func run(with value: [Character]) -> Int {
-  var val1: ArraySlice = [ 1,  1,  1, 26,  1,  1,  1, 26, 26,  1, 26, 26, 26, 26]
-  var val2: ArraySlice = [11, 14, 10,  0, 12, 12, 12, -8, -9, 11,  0, -5, -6, -12]
-  var val3: ArraySlice = [ 8, 13,  2,  7, 11,  4, 13, 13, 10,  1,  2, 14,  6, 14]
-  var inputs = ArraySlice(value.compactMap(Int.init))
+  var val2: ArraySlice = [-11, -14, -10,  0, -12, -12, -12,  8,  9, -11,  0,  5,  6, 12]
+  var val3: ArraySlice = [  8,  13,   2,  7,  11,   4,  13, 13, 10,   1,  2, 14,  6, 14]
 
-  var result = 0
+  let values = value.compactMap(Int.init)
+  var processed = findLongestCacheHit(values)
+  var result = cache[processed] ?? 0
+
+//  print("\(processed): \(result)")
+  var inputs = ArraySlice(values).dropFirst(processed.count)
+  val2 = val2.dropFirst(processed.count)
+  val3 = val3.dropFirst(processed.count)
+
   while !inputs.isEmpty {
-    result = process(input: inputs.removeFirst(),
-                     previous: result,
-                     shouldDivide: val1.removeFirst() == 26,
-                     val2: val2.removeFirst(),
-                     val3: val3.removeFirst())
+    let value2 = val2.removeFirst()
+    let value3 = val3.removeFirst()
+    let input = inputs.removeFirst()
+    processed.append(input)
+    if cache[processed] == nil {
+      cache[processed] = process(input: input,
+                                 previous: result,
+                                 val2: value2,
+                                 val3: value3)
+    }
+    //print("\(input): \(cache[processed]!)")
+    result = cache[processed]!
   }
   return result
 }
 
-public func partOne() {
-  let values = (10_000_000_000_000...99_999_999_999_999)
-    .lazy
-    .reversed()
-    .map { Array(String($0)) }
-    .filter { !$0.contains("0") }
-
-  var alu = ALU(input)
-//  //alu.inspector = inspect
+//func run(with value: [Character]) -> Int {
+//  var val2: ArraySlice = [-11, -14, -10,  0, -12, -12, -12,  8,  9, -11,  0,  5,  6, 12]
+//  var val3: ArraySlice = [  8,  13,   2,  7,  11,   4,  13, 13, 10,   1,  2, 14,  6, 14]
 //
-  let value: UInt64 = 55_292_431_582_843
-  let z1 = run(&alu, with: value)
-  let z2 = run(with: value)
-
-  print(z1 == z2)
-
-//  for value in values {
-//    if run(with: value) == 0 {
-//      print(String(value))
-//      return
+//  var inputs = ArraySlice(value.compactMap(Int.init))
+//
+//  var processed = [Int]()
+//  var result = 0
+//  while !inputs.isEmpty {
+//    let input = inputs.removeFirst()
+//    processed.append(input)
+//    if cache[processed] == nil {
+//      cache[processed] = process(input: input,
+//                                 previous: result,
+//                                 val2: val2.removeFirst(),
+//                                 val3: val3.removeFirst())
 //    }
+//    result = cache[processed]!
 //  }
+//  return result
+//}
 
-//  for value in values {
-//    if run(&alu, with: value) == 0 {
-//      print(String(value))
-//      return
-//    }
-//  }
+var positiveCache: [PositiveValues: Int] = [:]
+var negativeCache: [NegativeValues: Int] = [:]
+
+func process(input: Int, previous: Int, val2: Int, val3: Int) -> Int {
+  if val2 >= 0 {
+    let values = PositiveValues(input: input, previous: previous, val2: val2, val3: val3)
+    if positiveCache[values] == nil {
+      positiveCache[values] = processPositive(values)
+    }
+    return positiveCache[values]!
+  } else {
+    let values = NegativeValues(input: input, previous: previous, val3: val3)
+    if negativeCache[values] == nil {
+      negativeCache[values] = processNegative(values)
+    }
+    return negativeCache[values]!
+  }
 }
+
+struct NegativeValues: Hashable {
+  var input: Int
+  var previous: Int
+  var val3: Int
+}
+
+func processNegative(_ values: NegativeValues) -> Int {
+  values.previous * 26 + values.input + values.val3
+}
+
+struct PositiveValues: Hashable {
+  var input: Int
+  var previous: Int
+  var val2: Int
+  var val3: Int
+}
+
+func processPositive(_ values: PositiveValues) -> Int {
+  var next = values.previous / 26
+  if values.previous % 26 - values.val2 != values.input {
+    next = next * 26 + values.input + values.val3
+  }
+  return next
+}
+
+public func partOne() {
+    let values = (10_000_000_000_000...99_999_999_999_999)
+      .lazy
+      .reversed()
+      .map { Array(String($0)) }
+      .filter { !$0.contains("0") }
+
+  for value in values {
+    if run(with: value) == 0 {
+      print(value)
+      return
+    }
+  }
+}
+
+//public func partOne() {
+//  let values: [UInt64] = [
+//    95_292_431_512_841,
+//    95_292_431_512_841,
+//    95_292_431_562_843,
+//    95_292_431_562_843,
+//    15_282_431_312_743,
+//    95_292_222_512_843,
+//    82_292_431_512_243
+//  ]
+//
+//  var alu = ALU(input)
+//  for value in values {
+//    let z1 = run(&alu, with: value)
+//    let z2 = run(with: value)
+//    print(z1)
+//    assert(z1 == z2)
+//  }
+//
+////  printPositiveMatches(target: 0...0, index: 13)
+////  printPositiveMatches(target: 13...21, index: 12)
+////  printPositiveMatches(target: 0...25, index: 11)
+//}
 
 public func partTwo() {
 
 }
+
