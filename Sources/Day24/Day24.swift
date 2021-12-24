@@ -36,62 +36,22 @@ func run(path: [Int], value: Int, remainingVal2: ArraySlice<Int>, remainingVal3:
   return .failure
 }
 
-//var positiveCache: [PositiveValues: Int] = [:]
-//var negativeCache: [NegativeValues: Int] = [:]
-
-//func process(input: Int, previous: Int, val2: Int, val3: Int) -> Int {
-//  if val2 >= 0 {
-//    let values = PositiveValues(input: input, previous: previous, val2: val2, val3: val3)
-//    if positiveCache[values] == nil {
-//      positiveCache[values] = processPositive(values)
-//    }
-//    return positiveCache[values]!
-//  } else {
-//    let values = NegativeValues(input: input, previous: previous, val3: val3)
-//    if negativeCache[values] == nil {
-//      negativeCache[values] = processNegative(values)
-//    }
-//    return negativeCache[values]!
-//  }
-//}
-
 func process(input: Int, previous: Int, val2: Int, val3: Int) -> Int {
   if val2 >= 0 {
-    return processPositive(PositiveValues(input: input, previous: previous, val2: val2, val3: val3))
+    var next = previous / 26
+    if previous % 26 - val2 != input {
+      next = next * 26 + input + val3
+    }
+    return next
   } else {
-    return processNegative(NegativeValues(input: input, previous: previous, val3: val3))
+    return previous * 26 + input + val3
   }
 }
 
-struct NegativeValues: Hashable {
-  var input: Int
-  var previous: Int
-  var val3: Int
-}
-
-func processNegative(_ values: NegativeValues) -> Int {
-  values.previous * 26 + values.input + values.val3
-}
-
-struct PositiveValues: Hashable {
-  var input: Int
-  var previous: Int
-  var val2: Int
-  var val3: Int
-}
-
-func processPositive(_ values: PositiveValues) -> Int {
-  var next = values.previous / 26
-  if values.previous % 26 - values.val2 != values.input {
-    next = next * 26 + values.input + values.val3
-  }
-  return next
-}
+let val2 = [-11, -14, -10, 0, -12, -12, -12, 8, 9, -11, 0, 5, 6, 12]
+let val3 = [8, 13, 2, 7, 11, 4, 13, 13, 10, 1, 2, 14, 6, 14]
 
 func validPreviousValues(validOutput: Set<Int>, idx: Int, upto: Int) -> Set<Int> {
-  let val2 = [-11, -14, -10,  0, -12, -12, -12,  8,  9, -11,  0,  5,  6, 12]
-  let val3 = [  8,  13,   2,  7,  11,   4,  13, 13, 10,   1,  2, 14,  6, 14]
-
   var validPreviousValues = Set<Int>()
   for i in 1...9 {
     for j in 0...upto {
@@ -105,11 +65,7 @@ func validPreviousValues(validOutput: Set<Int>, idx: Int, upto: Int) -> Set<Int>
 }
 
 var validPreviousForPlace: [Int: Set<Int>] = [:]
-
-public func partOneAndTwo() {
-  let val2: ArraySlice = [-11, -14, -10,  0, -12, -12, -12,  8,  9, -11,  0,  5,  6, 12]
-  let val3: ArraySlice = [  8,  13,   2,  7,  11,   4,  13, 13, 10,   1,  2, 14,  6, 14]
-
+func populateValidPreviousValues() {
   var validOutput: Set<Int> = [0]
   for i in (0...13).reversed() {
     var upto: Int
@@ -124,10 +80,19 @@ public func partOneAndTwo() {
     print("for digit \(i) - \(validPrevious.count) valid previous values in range \(validPrevious.min() ?? 0)...\(validPrevious.max() ?? 0)")
     validOutput = validPrevious
   }
+}
 
-  let largest = run(path: [], value: 0, remainingVal2: val2, remainingVal3: val3, descending: true)
-  print("largest value: \(largest.value!)") // 92793949489995
+public func partOneAndTwo() {
+  populateValidPreviousValues()
 
-  let smallest = run(path: [], value: 0, remainingVal2: val2, remainingVal3: val3, descending: false)
-  print("smallest value: \(smallest.value!)") // 51131616112781
+  let val2Slice = ArraySlice(val2)
+  let val3Slice = ArraySlice(val3)
+
+  let largest = run(path: [], value: 0, remainingVal2: val2Slice, remainingVal3: val3Slice, descending: true).value!
+  print("largest value: \(largest)") // 92793949489995
+  assert(largest == "92793949489995")
+
+  let smallest = run(path: [], value: 0, remainingVal2: val2Slice, remainingVal3: val3Slice, descending: false).value!
+  print("smallest value: \(smallest)") // 51131616112781
+  assert(smallest == "51131616112781")
 }
