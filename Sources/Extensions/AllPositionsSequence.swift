@@ -22,6 +22,6 @@ extension Array where Element: RandomAccessCollection, Element.Indices == Range<
   }
 
   public var allPositions: AllPositionsSequence {
-    .init(rowIndices: first?.indices ?? .empty, columnIndices: indices)
+    .init(rowIndices: 0..<numberOfRows, columnIndices: 0..<numberOfColumns)
   }
 }

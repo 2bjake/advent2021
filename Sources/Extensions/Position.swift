@@ -82,6 +82,10 @@ extension Array where Element: RandomAccessCollection, Element.Index == Int {
   public func adjacentElements(of position: Position, includingDiagonals: Bool = false) -> [BaseElement] {
     adjacentPositions(of: position, includingDiagonals: includingDiagonals).map { self[$0] }
   }
+
+  public func wrap(_ position: Position) -> Position {
+    Position(position.row % self.numberOfRows, position.col % self.numberOfColumns)
+  }
 }
 
 extension Array where Element: RandomAccessCollection & MutableCollection, Element.Index == Int {
